@@ -282,6 +282,10 @@ class CornersProblem(search.SearchProblem):
     self.topright = False
     self.bottomleft = False
     self.bottomright = False
+
+  #
+  #State spaces look like this: ((x, y), topleft, topright, bottomleft, bottomright)
+  #
     
   def getStartState(self):
     "Returns the start state (in your state space, not the full Pacman state space)"
@@ -296,13 +300,13 @@ class CornersProblem(search.SearchProblem):
     
     "*** YOUR CODE HERE ***"
     top, right = self.walls.height-2, self.walls.width-2 
-    if state == (1,1):
+    if state[0] == (1,1):
       self.bottomleft = True
-    elif state == (1,top):
+    if state[0] == (1,top):
       self.topleft = True
-    elif state == (right,1):
+    if state[0] == (right,1):
       self.bottomright = True
-    elif state == (right, top):
+    if state[0] == (right,top):
       self.topright = True
     
     return (self.topleft and self.topright and self.bottomleft and self.bottomright)
@@ -328,7 +332,7 @@ class CornersProblem(search.SearchProblem):
      cost of expanding to that successor
     """
 
-    # comment out later
+    # debug
     print "THE STATE IS: ", state
 
     
@@ -347,7 +351,8 @@ class CornersProblem(search.SearchProblem):
       dx, dy = Actions.directionToVector(action)
       nextx, nexty = int(x + dx), int(y + dy)
       if not self.walls[nextx][nexty]:
-        nextState = (nextx, nexty)
+        nextState = ((nextx, nexty), self.topleft, self.topright,
+                     self.bottomleft, self.bottomright)
         #cost = self.costFn(nextState)
         successors.append( ( nextState, action, 1) )
       
