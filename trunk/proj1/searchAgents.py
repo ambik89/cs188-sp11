@@ -392,12 +392,53 @@ def cornersHeuristic(state, problem):
   """
   corners = problem.corners # These are the corner coordinates
   # self.corners = ((1,1), (1,top), (right, 1), (right, top))
+  bottomleft, topleft, bottomright, topright = corners
+  top = topleft[1]
+  right = topright[0]
   
   walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
   # 2D array, true where there's a wall
   
   "*** YOUR CODE HERE ***"
-  return 0 # Default to trivial solution
+  position, tl, tr, bl, br = state
+  totalDistance = 0
+
+  while not (tl and tr and bl and br):
+    x, y = position
+    closestDistance = 0
+    closestCorner = ()
+    if tl == False:
+      x_dist = abs(x - 1)
+      y_dist = abs(y - top)
+      if x_dist + y_dist > closestDistance:
+        closestDistance = x_dist + y_dist
+        closestCorner = topleft
+    if tr == False:
+      x_dist = abs(x - right)
+      y_dist = abs(y - top)
+      if x_dist + y_dist > closestDistance:
+        closestDistance = x_dist + y_dist
+        closestCorner = topright
+    if bl == False:
+      x_dist = abs(x - 1)
+      y_dist = abs(y - 1)
+      if x_dist + y_dist > closestDistance:
+        closestDistance = x_dist + y_dist
+        closestCorner = bottomleft
+    if br == False:
+      x_dist = abs(x - right)
+      y_dist = abs(y - 1)
+      if x_dist + y_dist > closestDistance:
+        closestDistance = x_dist + y_dist
+        closestCorner = bottomright
+    position = closestCorner
+    totalDistance += closestDistance
+    if closestCorner == topleft: tl = True
+    if closestCorner == topright: tr = True
+    if closestCorner == bottomleft: bl = True
+    if closestCorner == bottomright: br = True
+
+  return totalDistance
 
 class AStarCornersAgent(SearchAgent):
   "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"
