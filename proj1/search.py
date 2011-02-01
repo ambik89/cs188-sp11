@@ -170,7 +170,8 @@ def uniformCostSearch(problem):
     explored.add(start)
     queue = util.PriorityQueue()
     for successor in successors:
-      queue.push((successor[0], [successor[1]]), successor[2])
+      cost = problem.getCostOfActions([successor[1]])
+      queue.push((successor[0], [successor[1]]), cost)
       #print [successor[1]]
       
   while not queue.isEmpty():
@@ -187,7 +188,8 @@ def uniformCostSearch(problem):
         for successor in successors:
           updated_move_list = tup[1][:]
           updated_move_list.append(successor[1])
-          queue.push((successor[0], updated_move_list), successor[2])
+          cost = problem.getCostOfActions(updated_move_list)
+          queue.push((successor[0], updated_move_list), cost)
 
   return []
   util.raiseNotDefined()
