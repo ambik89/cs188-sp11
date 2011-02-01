@@ -122,7 +122,7 @@ def breadthFirstSearch(problem):
   Search the shallowest nodes in the search tree first.
   [2nd Edition: p 73, 3rd Edition: p 82]
   """
-
+  
   start = problem.getStartState()
   explored = set()
   
@@ -138,7 +138,8 @@ def breadthFirstSearch(problem):
       
   while not queue.isEmpty():
     tup = queue.pop()
-    #print tup[0], tup[1]
+    # debug
+    #print tup
     if tup[0] in explored:
       continue
     else:
@@ -153,6 +154,7 @@ def breadthFirstSearch(problem):
           queue.push((successor[0], updated_move_list))
 
   return []
+
   util.raiseNotDefined()
       
 def uniformCostSearch(problem):
