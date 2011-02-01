@@ -282,15 +282,6 @@ class CornersProblem(search.SearchProblem):
     self.topright = False
     self.bottomleft = False
     self.bottomright = False
-    
-    if self.startingPosition == (1,1):
-      self.bottomleft = True
-    if self.startingPosition == (1,top):
-      self.topleft = True
-    if self.startingPosition == (right,1):
-      self.bottomright = True
-    if self.startingPosition == (right,top):
-      self.topright = True
 
   #
   #State spaces look like this: ((x, y), topleft, topright, bottomleft, bottomright)
@@ -308,18 +299,25 @@ class CornersProblem(search.SearchProblem):
     "Returns whether this search state is a goal state of the problem"
     
     "*** YOUR CODE HERE ***"
-    top, right = self.walls.height-2, self.walls.width-2
-    position, topleft, topright, bottomleft, bottomright = state
+    top, right = self.walls.height-2, self.walls.width-2 
     if state[0] == (1,1):
-      bottomleft = True
+      self.bottomleft = True
     if state[0] == (1,top):
-      topleft = True
+      self.topleft = True
     if state[0] == (right,1):
-      bottomright = True
+      self.bottomright = True
     if state[0] == (right,top):
-      topright = True
+      self.topright = True
     
-    return self.topleft and self.topright and self.bottomleft and self.bottomright
+    return (self.topleft and self.topright and self.bottomleft and self.bottomright)
+
+    """
+    if state in self.corners and self.visited[state] == False:
+      self.visited[state] = True
+      return True
+    else:
+      return False
+    """
     util.raiseNotDefined()
        
   def getSuccessors(self, state):
@@ -336,6 +334,7 @@ class CornersProblem(search.SearchProblem):
 
     # debug
     print "THE STATE IS: ", state
+
     
     successors = []
     for action in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
@@ -347,22 +346,13 @@ class CornersProblem(search.SearchProblem):
       #   hitsWall = self.walls[nextx][nexty]
       
       "*** YOUR CODE HERE ***"
-      top, right = self.walls.height-2, self.walls.width-2 
       position, topleft, topright, bottomleft, bottomright = state
       x, y = position
       dx, dy = Actions.directionToVector(action)
       nextx, nexty = int(x + dx), int(y + dy)
       if not self.walls[nextx][nexty]:
-        nextpos = (nextx, nexty)
-        if nextpos == (1,1):
-          bottomleft = True
-        if nextpos == (1,top):
-          topleft = True
-        if nextpos == (right,1):
-          bottomright = True
-        if nextpos == (right,top):
-          topright = True
-        nextState = (nextpos, topleft, topright, bottomleft, bottomright)
+        nextState = ((nextx, nexty), self.topleft, self.topright,
+                     self.bottomleft, self.bottomright)
         #cost = self.costFn(nextState)
         successors.append( ( nextState, action, 1) )
       
