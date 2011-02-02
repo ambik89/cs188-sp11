@@ -215,7 +215,8 @@ def aStarSearch(problem, heuristic=nullHeuristic):
     explored.add(start)
     queue = util.PriorityQueue()
     for successor in successors:
-      cost = heuristic(successor[0], problem)
+      temp = problem.getCostOfActions([successor[1]])
+      cost = temp + heuristic(successor[0], problem)
       queue.push((successor[0], [successor[1]]), cost)
       #print [successor[1]]
       
@@ -233,7 +234,8 @@ def aStarSearch(problem, heuristic=nullHeuristic):
         for successor in successors:
           updated_move_list = tup[1][:]
           updated_move_list.append(successor[1])
-          cost = heuristic(successor[0], problem)
+          temp = problem.getCostOfActions(updated_move_list)
+          cost = temp + heuristic(successor[0], problem)
           queue.push((successor[0], updated_move_list), cost)
 
   return []
