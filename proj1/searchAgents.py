@@ -405,30 +405,30 @@ def cornersHeuristic(state, problem):
 
   while not (tl and tr and bl and br):
     x, y = position
-    closestDistance = 0
+    closestDistance = top + right
     closestCorner = ()
     if tl == False:
       x_dist = abs(x - 1)
       y_dist = abs(y - top)
-      if x_dist + y_dist > closestDistance:
+      if x_dist + y_dist < closestDistance:
         closestDistance = x_dist + y_dist
         closestCorner = topleft
     if tr == False:
       x_dist = abs(x - right)
       y_dist = abs(y - top)
-      if x_dist + y_dist > closestDistance:
+      if x_dist + y_dist < closestDistance:
         closestDistance = x_dist + y_dist
         closestCorner = topright
     if bl == False:
       x_dist = abs(x - 1)
       y_dist = abs(y - 1)
-      if x_dist + y_dist > closestDistance:
+      if x_dist + y_dist < closestDistance:
         closestDistance = x_dist + y_dist
         closestCorner = bottomleft
     if br == False:
       x_dist = abs(x - right)
       y_dist = abs(y - 1)
-      if x_dist + y_dist > closestDistance:
+      if x_dist + y_dist < closestDistance:
         closestDistance = x_dist + y_dist
         closestCorner = bottomright
     position = closestCorner
