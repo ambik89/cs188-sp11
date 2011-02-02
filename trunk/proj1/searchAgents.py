@@ -533,7 +533,7 @@ def foodHeuristic(state, problem):
   foodList = foodGrid.asList()
 
   totalDistance = 0
-  while not foodList:
+  while len(foodList) > 0:
     pacx, pacy = position
     closestDistance = top + right
     closestFood = ()
@@ -542,7 +542,8 @@ def foodHeuristic(state, problem):
       if dist < closestDistance:
         closestDistance = dist
         closestFood = (x,y)
-    foodList.remove(closestFood)
+    if not closestFood == ():
+        foodList.remove(closestFood)
     totalDistance += closestDistance
     position = closestFood
 
