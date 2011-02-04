@@ -547,8 +547,8 @@ def foodHeuristic(state, problem):
       dist = abs(f1[0] - f2[0]) + abs(f1[1] - f2[1])
       if dist > furthestDistance:
         furthestDistance = dist
-              
-  return closestDistance + furthestDistance + len(foodList)
+
+  return closestDistance + furthestDistance #+ len(foodList) - 2
     
 class ClosestDotSearchAgent(SearchAgent):
   "Search for all food using a sequence of searches"
