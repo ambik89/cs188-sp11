@@ -532,22 +532,23 @@ def foodHeuristic(state, problem):
   top, right = problem.walls.height-2, problem.walls.width-2 
   foodList = foodGrid.asList()
 
-  totalDistance = 0
-  while len(foodList) > 0:
-    pacx, pacy = position
-    closestDistance = top + right
-    closestFood = ()
-    for x,y in foodList:
-      dist = abs(x - position[0]) + abs(y - position[1])
+  closestDistance = top + right
+  if len(foodList) > 0:
+    for food in foodList:
+      dist = abs(position[0] - food[0]) + abs(position[1] - food[1])
       if dist < closestDistance:
         closestDistance = dist
-        closestFood = (x,y)
-    if not closestFood == ():
-        foodList.remove(closestFood)
-    totalDistance += closestDistance
-    position = closestFood
+  else:
+    closestDistance = 0
 
-  return totalDistance
+  furthestDistance = 0
+  for f1 in foodList:
+    for f2 in foodList:
+      dist = abs(f1[0] - f2[0]) + abs(f1[1] - f2[1])
+      if dist > furthestDistance:
+        furthestDistance = dist
+              
+  return closestDistance + furthestDistance + len(foodList)
     
 class ClosestDotSearchAgent(SearchAgent):
   "Search for all food using a sequence of searches"
