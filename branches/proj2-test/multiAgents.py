@@ -68,7 +68,42 @@ class ReflexAgent(Agent):
     newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
 
     "*** YOUR CODE HERE ***"
-    return successorGameState.getScore()
+    """
+    newPos: (x, y) -- (1, 1) at lower left corner. (0, 0) is the wall at lower left.
+    newFood: A 2D array where food[x][y] is True if there is a food pellet at (x, y).
+    newGhostStates: an AgentState object(s) with instance variables:
+                  start: startConfiguration           #initial configuration
+                  configuration: pos = (x,y),         #represents current pos + dir
+                                 direction = Directions.X (NORTH, SOUTH, STOP, etc.)
+                  isPacman: True or False
+                  scaredTimer = integer
+    newScaredTimes: a list of scaredTimers extracted from Ghost States
+    """
+
+    # debug
+    """
+    print "Position: ", newPos
+    print "Food: ", newFood, "Food at (3,1)? ", newFood[3][1]
+    print "Ghost states: ", newGhostStates
+    print "newScaredTimes: ", newScaredTimes
+    """
+
+    newFoodList = newFood.asList()
+    distToClosestFood = 1000
+    if len(newFoodList) > 0:
+      for food in newFoodList:
+        dist = abs(newPos[0] - food[0]) + abs(newPos[1] - food[1])
+        if dist < distToClosestFood:
+          distToClosestFood = dist
+    else:
+      distToClosestFood = 0
+
+    
+    distToClosestGhost = 1000
+    #if 
+
+    return distToClosestFood
+    #return successorGameState.getScore()
 
 def scoreEvaluationFunction(currentGameState):
   """
