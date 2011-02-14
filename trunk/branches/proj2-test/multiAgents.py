@@ -71,7 +71,7 @@ class ReflexAgent(Agent):
     """
     newPos: (x, y) -- (1, 1) at lower left corner. (0, 0) is the wall at lower left.
     newFood: A 2D array where food[x][y] is True if there is a food pellet at (x, y).
-    newGhostStates: an AgentState object(s) with instance variables:
+    newGhostStates: a list of ghost AgentState objects with instance variables:
                   start: startConfiguration           #initial configuration
                   configuration: pos = (x,y),         #represents current pos + dir
                                  direction = Directions.X (NORTH, SOUTH, STOP, etc.)
@@ -87,22 +87,33 @@ class ReflexAgent(Agent):
     print "Ghost states: ", newGhostStates
     print "newScaredTimes: ", newScaredTimes
     """
-
+    
+    # Calculate distance to closest food
     newFoodList = newFood.asList()
     distToClosestFood = 1000
-    if len(newFoodList) > 0:
+    if newFoodList:
+#    if len(newFoodList) > 0:
       for food in newFoodList:
         dist = abs(newPos[0] - food[0]) + abs(newPos[1] - food[1])
         if dist < distToClosestFood:
           distToClosestFood = dist
     else:
-      distToClosestFood = 0
+      distToClosestFood = 0.5
 
-    
+    # Calculate distance to closest ghost and the rest of the ghosts
     distToClosestGhost = 1000
-    #if 
+    distToRestOfGhosts = 1000
+    if newGhostStates:
+      for ghostState in newGhostStates:
+        ghostPos = ghostState.configuration.pos
+        dist = abs(newPos[0] - ghostPos[0]) + abs(newPos[1] - ghostPos[1])
+        if dist < distToClosestGhost:
+          distToClosestGhost = dist
+          # TODO: calculate the distances to rest of the ghosts
+    else:
+      distToClosestGhost = 0.5
 
-    return (1 / distToClosestFood) + successorGameState.getScore()
+    return 10 * (1 / distToClosestFood) + successorGameState.getScore()
     #return successorGameState.getScore()
 
 def scoreEvaluationFunction(currentGameState):
