@@ -102,7 +102,7 @@ class ReflexAgent(Agent):
     distToClosestGhost = 1000
     #if 
 
-    return distToClosestFood
+    return (1 / distToClosestFood) + successorGameState.getScore()
     #return successorGameState.getScore()
 
 def scoreEvaluationFunction(currentGameState):
