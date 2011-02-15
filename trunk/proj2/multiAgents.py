@@ -71,7 +71,7 @@ class ReflexAgent(Agent):
     """
     newPos: (x, y) -- (1, 1) at lower left corner. (0, 0) is the wall at lower left.
     newFood: A 2D array where food[x][y] is True if there is a food pellet at (x, y).
-    newGhostStates: an AgentState object(s) with instance variables:
+    newGhostStates: a list of ghost AgentState objects with instance variables:
                   start: startConfiguration           #initial configuration
                   configuration: pos = (x,y),         #represents current pos + dir
                                  direction = Directions.X (NORTH, SOUTH, STOP, etc.)
@@ -80,6 +80,16 @@ class ReflexAgent(Agent):
     newScaredTimes: a list of scaredTimers extracted from Ghost States
     """
 
+    # Our scoring will be done as follows:
+    # k1 * foodScore + k2 * ghostScore
+    foodScore = 0
+    ghostScore = 0
+    noMovePenalty = 0
+
+    currentPos = currentGameState.getPacmanPosition()
+    currentFood = currentGameState.getFood()
+    currentFoodList = currentFood.asList()
+
     # debug
     """
     print "Position: ", newPos
@@ -87,22 +97,59 @@ class ReflexAgent(Agent):
     print "Ghost states: ", newGhostStates
     print "newScaredTimes: ", newScaredTimes
     """
-
+    
+    # Calculate distance to closest food, unless we eat a food pellet
+    # in the next state
     newFoodList = newFood.asList()
-    distToClosestFood = 1000
-    if len(newFoodList) > 0:
-      for food in newFoodList:
-        dist = abs(newPos[0] - food[0]) + abs(newPos[1] - food[1])
-        if dist < distToClosestFood:
-          distToClosestFood = dist
+    distToClosestFood = 1000.0
+    if len(newFoodList) < len(currentFoodList):
+      foodScore = 4   # adjust
     else:
-      distToClosestFood = 0.5
+      if newFoodList:
+        for food in newFoodList:
+          dist = abs(newPos[0] - food[0]) + abs(newPos[1] - food[1])
+          if dist < distToClosestFood:
+            distToClosestFood = dist
+      else:
+        distToClosestFood = 0.5
+      foodScore = 1.0 / distToClosestFood # adjust
 
-    
-    distToClosestGhost = 1000
-    
+    # Calculate distance to closest ghost and the rest of the ghosts
+    distToClosestGhost = 1000.0
+    distToRestOfGhosts = 1000.0
+    if newGhostStates:
+      for ghostState in newGhostStates:
+        ghostPos = ghostState.configuration.pos
+        dist = abs(newPos[0] - ghostPos[0]) + abs(newPos[1] - ghostPos[1])
+        if dist < distToClosestGhost:
+          distToClosestGhost = dist
+          # TODO: calculate the distances to rest of the ghosts
+    #else:
+      # distToClosestGhost = 1000.0
+    if distToClosestGhost == 0:
+      distToClosestGhost = 0.03125
+    ghostScore = 1.0 / distToClosestGhost # adjust
 
-    return (1 / distToClosestFood) + successorGameState.getScore()
+    # penalize Pacman for not moving
+    if currentPos == newPos:
+      noMovePenalty = 10 # adjust
+
+    # Make Pacman move toward ghosts if they're scared.
+    # Pacman will probably get owned if he faces multiple ghosts
+    # since he'll move toward the closest ghost if at least one of
+    # them is scared.
+    totalScaredTime = 0
+    for scaredTime in newScaredTimes:
+      totalScaredTime += scaredTime
+    if totalScaredTime > 0:
+      ghostScore = ghostScore * (- totalScaredTime / 10) 
+      
+    # debug
+#    print "foodScore: ", 50 * foodScore
+#    print "ghostScore: ", 25 * ghostScore
+#    print "****total score****: ", 50 * foodScore - 25 * ghostScore    
+    
+    return 50 * foodScore - (25 * ghostScore) - noMovePenalty 
     #return successorGameState.getScore()
 
 def scoreEvaluationFunction(currentGameState):
