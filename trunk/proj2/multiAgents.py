@@ -209,7 +209,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
     """
     "*** YOUR CODE HERE ***"
 
-    v = maxValue(gameState, self.depth)
+    v = self.maxValue(gameState, self.depth)
 
     actions = gameState.getLegalActions(0)
     for action in actions:
@@ -248,7 +248,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
     actions = gameState.getLegalActions(0)
     for action in actions:
       successor = gameState.generateSuccessor(0, action)
-      v = max(v, minValue(successor, depth, 1))
+      v = max(v, self.minValue(successor, depth, 1))
     return v
 
   def minValue(self, gameState, depth, agentIndex):
@@ -262,13 +262,13 @@ class MinimaxAgent(MultiAgentSearchAgent):
       return self.evaluationFunction(gameState)
 
     v = 1000
-    actions = gameState.getLegalActions(0)
+    actions = gameState.getLegalActions(agentIndex)
     for action in actions:
-      successor = gameState.generateSuccessor(0, action)
+      successor = gameState.generateSuccessor(agentIndex, action)
       if agentIndex < numAgents-1:
-        v = min(v, minValue(successor, depth, agentIndex+1))
+        v = min(v, self.minValue(successor, depth, agentIndex+1))
       else:
-        v = min(v, maxValue(successor, depth-1))
+        v = min(v, self.maxValue(successor, depth-1))
     return v
     
 class AlphaBetaAgent(MultiAgentSearchAgent):
