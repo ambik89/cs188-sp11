@@ -208,8 +208,69 @@ class MinimaxAgent(MultiAgentSearchAgent):
         Returns the total number of agents in the game
     """
     "*** YOUR CODE HERE ***"
+
+    v = maxValue(gameState, self.depth)
+
+    actions = gameState.getLegalActions(0)
+    for action in actions:
+      successor = gameState.generateSuccessor(0, action)
+      if v == self.evaluationFunction(successor):
+        return action
+    return None
+    """
+    for agentIndex in range(0, gameState.getNumAgents()):  
+        # pacman
+        if agentIndex == 0:
+          highestScore = -1000
+          highestAction = None
+          actions = gameState.getLegalActions(0)
+          for action in actions:
+            successor = gameState.generateSuccessor(0, action)
+            if successor.isWin():
+              return action
+            if successor.isLose():
+              continue
+            #score = self.evaluationFunction(successor)
+            if score > highestScore:
+              highestScore = score
+              highestAction = action
+          return highestAction
+    """
+    print "Nooooo"
     util.raiseNotDefined()
 
+  def maxValue(self, gameState, depth):
+    if gameState.isWin():
+      return self.evaluationFunction(gameState)
+    if gameState.isLose():
+      return self.evaluationFunction(gameState)
+    v = -1000
+    actions = gameState.getLegalActions(0)
+    for action in actions:
+      successor = gameState.generateSuccessor(0, action)
+      v = max(v, minValue(successor, depth, 1))
+    return v
+
+  def minValue(self, gameState, depth, agentIndex):
+    if gameState.isWin():
+      return self.evaluationFunction(gameState)
+    if gameState.isLose():
+      return self.evaluationFunction(gameState)
+
+    numAgents = gameState.getNumAgents()
+    if depth == 0 and agentIndex == numAgents-1:
+      return self.evaluationFunction(gameState)
+
+    v = 1000
+    actions = gameState.getLegalActions(0)
+    for action in actions:
+      successor = gameState.generateSuccessor(0, action)
+      if agentIndex < numAgents-1:
+        v = min(v, minValue(successor, depth, agentIndex+1))
+      else:
+        v = min(v, maxValue(successor, depth-1))
+    return v
+    
 class AlphaBetaAgent(MultiAgentSearchAgent):
   """
     Your minimax agent with alpha-beta pruning (question 3)
