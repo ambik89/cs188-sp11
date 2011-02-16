@@ -361,15 +361,16 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
 
     numAgents = gameState.getNumAgents()
 
-    v = 1000
+    v = 0
     actions = gameState.getLegalActions(agentIndex)
     for action in actions:
       successor = gameState.generateSuccessor(agentIndex, action)
       if agentIndex < numAgents-1:
-        v = min(v, self.minValue(successor, depth, agentIndex+1))
+        v += self.minValue(successor, depth, agentIndex+1)
       else:
-        v = min(v, self.maxValue(successor, depth-1))
-    return v
+        v += self.maxValue(successor, depth-1)
+    #print "value minValue returns: ", v * 1.0 / len(actions)
+    return v * 1.0 / len(actions)
 
 def betterEvaluationFunction(currentGameState):
   """
