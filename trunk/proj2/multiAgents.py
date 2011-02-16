@@ -329,7 +329,47 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
       legal moves.
     """
     "*** YOUR CODE HERE ***"
+    maxScore = -1000
+    maxAction = None
+    actions = gameState.getLegalActions(0)
+    for action in actions:
+      successor = gameState.generateSuccessor(0, action)
+      # make this more efficient somehow
+      minimizerValue = self.minValue(successor, self.depth, 1)
+      if minimizerValue > maxScore:
+        maxScore = minimizerValue
+        maxAction = action
+      #print "v's: ", self.evaluationFunction(successor)
+      #if v == self.evaluationFunction(successor):
+    print "maxValue of entire tree:", maxScore #debug
+    return maxAction
     util.raiseNotDefined()
+
+  def maxValue(self, gameState, depth):
+    if gameState.isWin() or gameState.isLose() or depth == 0:
+      return self.evaluationFunction(gameState)
+    v = -1000
+    actions = gameState.getLegalActions(0)
+    for action in actions:
+      successor = gameState.generateSuccessor(0, action)
+      v = max(v, self.minValue(successor, depth, 1))
+    return v
+
+  def minValue(self, gameState, depth, agentIndex):
+    if gameState.isWin() or gameState.isLose():
+      return self.evaluationFunction(gameState)
+
+    numAgents = gameState.getNumAgents()
+
+    v = 1000
+    actions = gameState.getLegalActions(agentIndex)
+    for action in actions:
+      successor = gameState.generateSuccessor(agentIndex, action)
+      if agentIndex < numAgents-1:
+        v = min(v, self.minValue(successor, depth, agentIndex+1))
+      else:
+        v = min(v, self.maxValue(successor, depth-1))
+    return v
 
 def betterEvaluationFunction(currentGameState):
   """
