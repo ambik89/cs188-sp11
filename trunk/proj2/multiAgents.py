@@ -228,14 +228,10 @@ class MinimaxAgent(MultiAgentSearchAgent):
     util.raiseNotDefined()
 
   def maxValue(self, gameState, depth):
-    if gameState.isWin():
-      return self.evaluationFunction(gameState)
-    if gameState.isLose():
+    if gameState.isWin() or gameState.isLose() or depth == 0:
       return self.evaluationFunction(gameState)
     
     numAgents = gameState.getNumAgents()
-    if depth == 0:
-      return self.evaluationFunction(gameState)
 
     v = -1000
     actions = gameState.getLegalActions(0)
@@ -245,9 +241,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
     return v
 
   def minValue(self, gameState, depth, agentIndex):
-    if gameState.isWin():
-      return self.evaluationFunction(gameState)
-    if gameState.isLose():
+    if gameState.isWin() or gameState.isLose():
       return self.evaluationFunction(gameState)
 
     numAgents = gameState.getNumAgents()
@@ -274,12 +268,24 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
       Returns the minimax action using self.depth and self.evaluationFunction
     """
     "*** YOUR CODE HERE ***"
+    maxScore = -1000
+    maxAction = None
+    actions = gameState.getLegalActions(0)
+    for action in actions:
+      successor = gameState.generateSuccessor(0, action)
+      # make this more efficient somehow
+      minimizerValue = self.minValue(successor, self.depth, 1, -10000, 10000)
+      if minimizerValue > maxScore:
+        maxScore = minimizerValue
+        maxAction = action
+      #print "v's: ", self.evaluationFunction(successor)
+      #if v == self.evaluationFunction(successor):
+    print "maxValue of entire tree:", maxScore #debug
+    return maxAction
     util.raiseNotDefined()
 
   def maxValue(self, gameState, depth, a, b):
-    if gameState.isWin():
-      return self.evaluationFunction(gameState)
-    if gameState.isLose():
+    if gameState.isWin() or gameState.isLose() or depth == 0:
       return self.evaluationFunction(gameState)
     v = -1000
     actions = gameState.getLegalActions(0)
@@ -292,14 +298,10 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
     return v
 
   def minValue(self, gameState, depth, agentIndex, a, b):
-    if gameState.isWin():
-      return self.evaluationFunction(gameState)
-    if gameState.isLose():
+    if gameState.isWin() or gameState.isLose():
       return self.evaluationFunction(gameState)
 
     numAgents = gameState.getNumAgents()
-    if depth == 1 and agentIndex == numAgents-1:
-      return self.evaluationFunction(gameState)
 
     v = 1000
     actions = gameState.getLegalActions(agentIndex)
