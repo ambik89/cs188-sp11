@@ -209,14 +209,23 @@ class MinimaxAgent(MultiAgentSearchAgent):
     """
     "*** YOUR CODE HERE ***"
 
-    v = self.maxValue(gameState, self.depth)
+    #v = self.maxValue(gameState, self.depth)
 
+    maxScore = -1000
+    maxAction = None
     actions = gameState.getLegalActions(0)
     for action in actions:
       successor = gameState.generateSuccessor(0, action)
-      if v == self.evaluationFunction(successor):
-        return action
-    return None
+      # make this more efficient somehow
+      minimizerValue = self.minValue(successor, self.depth, 1)
+      if minimizerValue > maxScore:
+        maxScore = minimizerValue
+        maxAction = action
+      #print "v's: ", self.evaluationFunction(successor)
+      #if v == self.evaluationFunction(successor):
+    print "maxValue of entire tree:", maxScore #debug
+    return maxAction
+  
     """
     for agentIndex in range(0, gameState.getNumAgents()):  
         # pacman
@@ -258,7 +267,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
       return self.evaluationFunction(gameState)
 
     numAgents = gameState.getNumAgents()
-    if depth == 0 and agentIndex == numAgents-1:
+    if depth == 1 and agentIndex == numAgents-1:
       return self.evaluationFunction(gameState)
 
     v = 1000
