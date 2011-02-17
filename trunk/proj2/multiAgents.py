@@ -223,7 +223,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
         maxAction = action
       #print "v's: ", self.evaluationFunction(successor)
       #if v == self.evaluationFunction(successor):
-    print "maxValue of entire tree:", maxScore #debug
+    #print "maxValue of entire tree:", maxScore #debug
     return maxAction
     util.raiseNotDefined()
 
@@ -280,7 +280,7 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         maxAction = action
       #print "v's: ", self.evaluationFunction(successor)
       #if v == self.evaluationFunction(successor):
-    print "maxValue of entire tree:", maxScore #debug
+    #print "maxValue of entire tree:", maxScore #debug
     return maxAction
     util.raiseNotDefined()
 
@@ -341,7 +341,7 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         maxAction = action
       #print "v's: ", self.evaluationFunction(successor)
       #if v == self.evaluationFunction(successor):
-    print "maxValue of entire tree:", maxScore #debug
+    #print "maxValue of entire tree:", maxScore #debug
     return maxAction
     util.raiseNotDefined()
 
@@ -380,6 +380,54 @@ def betterEvaluationFunction(currentGameState):
     DESCRIPTION: <write something here so we know what you did>
   """
   "*** YOUR CODE HERE ***"
+  
+  pacPos = currentGameState.getPacmanPosition()
+  foodList = currentGameState.getFood().asList()
+  capsules = currentGameState.getCapsules()
+  ghosts = currentGameState.getGhostStates()
+  scared = ghosts[0].scaredTimer
+    
+  #distance of ghosts
+  ghostDist = 0
+  closestGhostDist = 1000
+  for ghost in ghosts:
+      d = manhattanDistance(pacPos, ghost.getPosition())
+      closestGhostDist = min(closestGhostDist, d)
+      ghostDist += d
+  ghostDist /= len(ghosts)    
+  
+  #distance of foods    
+  foodDist = 0
+  closestFoodDist = 1000
+  for food in foodList:
+      d = manhattanDistance(pacPos, food)
+      closestFOodDist = min(closestFoodDist, d)          
+      foodDist += d
+  ghostDist /= len(foodList)
+  
+  #distance of capsules
+  capDist = 1000
+  for cap in capsules:
+      capDist = min(capDist, manhattanDistance(pacPos, cap))
+
+  if(scared > 0):
+    ghostMult = 10
+  else:
+    ghostMult = 1
+    
+  if closestFoodDist < closestGhostDist:
+    foodMult = 1000
+  else:
+    foodMult = 500 
+  
+  #prevent divide by zero
+  #closestGhostDist += 0.01
+  #closestFoodDist += 0.01
+  
+  score = (closestGhostDist)*ghostMult + (1.0/closestFoodDist)*400 + (1.0/capDist)*400 + (1.0/len(foodList))*foodMult
+  #print score
+  return score
+  
   util.raiseNotDefined()
 
 # Abbreviation
