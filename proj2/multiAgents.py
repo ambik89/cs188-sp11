@@ -388,44 +388,33 @@ def betterEvaluationFunction(currentGameState):
   scared = ghosts[0].scaredTimer
     
   #distance of ghosts
-  ghostDist = 0
   closestGhostDist = 1000
   for ghost in ghosts:
-      d = manhattanDistance(pacPos, ghost.getPosition())
-      closestGhostDist = min(closestGhostDist, d)
-      ghostDist += d
-  ghostDist /= len(ghosts)    
+      closestGhostDist = min(closestGhostDist, manhattanDistance(pacPos, ghost.getPosition()))   
   
   #distance of foods    
-  foodDist = 0
   closestFoodDist = 1000
   for food in foodList:
-      d = manhattanDistance(pacPos, food)
-      closestFOodDist = min(closestFoodDist, d)          
-      foodDist += d
-  ghostDist /= len(foodList)
+      closestFoodDist = min(closestFoodDist, manhattanDistance(pacPos, food))
   
   #distance of capsules
-  capDist = 1000
+  closestCapDist = 1000
   for cap in capsules:
-      capDist = min(capDist, manhattanDistance(pacPos, cap))
+      closestCapDist = min(closestCapDist, manhattanDistance(pacPos, cap))
 
   if(scared > 0):
-    ghostMult = 10
+    ghostMult = 100
   else:
-    ghostMult = 1
-    
-  if closestFoodDist < closestGhostDist:
-    foodMult = 1000
-  else:
-    foodMult = 500 
+    ghostMult = -10
   
-  #prevent divide by zero
-  #closestGhostDist += 0.01
-  #closestFoodDist += 0.01
+  if closestGhostDist == 0:
+      closestGhostDist = 1;
+  if closestFoodDist == 0:
+      closestFoodDist = 1;
+  if closestCapDist == 0:
+      closestCapDist = 1;
   
-  score = (closestGhostDist)*ghostMult + (1.0/closestFoodDist)*400 + (1.0/capDist)*400 + (1.0/len(foodList))*foodMult
-  #print score
+  score = currentGameState.getScore()*3 + (1.0/closestGhostDist)*ghostMult + (1.0/closestFoodDist)*50 + (1.0/closestCapDist)*50
   return score
   
   util.raiseNotDefined()
