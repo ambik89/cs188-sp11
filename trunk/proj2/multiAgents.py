@@ -405,7 +405,7 @@ def betterEvaluationFunction(currentGameState):
   if(scared > 0):
     ghostMult = 100
   else:
-    ghostMult = -10
+    ghostMult = -35
   
   if closestGhostDist == 0:
       closestGhostDist = 1;
@@ -414,7 +414,7 @@ def betterEvaluationFunction(currentGameState):
   if closestCapDist == 0:
       closestCapDist = 1;
   
-  score = currentGameState.getScore()*3 + (1.0/closestGhostDist)*ghostMult + (1.0/closestFoodDist)*50 + (1.0/closestCapDist)*50
+  score = currentGameState.getScore()*35 + (1.0/closestGhostDist)*ghostMult + (1.0/closestFoodDist)*45 + (1.0/closestCapDist)*85
   return score
   
   util.raiseNotDefined()
