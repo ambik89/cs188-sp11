@@ -36,8 +36,8 @@ class QLearningAgent(ReinforcementAgent):
   def __init__(self, **args):
     "You can initialize Q-values here..."
     ReinforcementAgent.__init__(self, **args)
-
     "*** YOUR CODE HERE ***"
+    self.qvalues = util.Counter()
 
   def getQValue(self, state, action):
     """
@@ -46,6 +46,7 @@ class QLearningAgent(ReinforcementAgent):
       a state or (state,action) tuple
     """
     "*** YOUR CODE HERE ***"
+    return qvalues[(state,action)]
     util.raiseNotDefined()
 
 
@@ -57,6 +58,11 @@ class QLearningAgent(ReinforcementAgent):
       terminal state, you should return a value of 0.0.
     """
     "*** YOUR CODE HERE ***"
+    qList = list()
+    for a in self.getLegalActions(state):
+      qList.append(qvalues[(state, a)])
+    return max(qList)
+  
     util.raiseNotDefined()
 
   def getPolicy(self, state):
@@ -66,6 +72,15 @@ class QLearningAgent(ReinforcementAgent):
       you should return None.
     """
     "*** YOUR CODE HERE ***"
+    maxQ = -99999
+    maxA = None
+    for a in self.getLegalActions(state):
+      q = qvalues[(state, a)]
+      if q > maxQ:
+        maxQ = q
+        maxA = a
+    return maxA
+    
     util.raiseNotDefined()
 
   def getAction(self, state):
@@ -97,6 +112,13 @@ class QLearningAgent(ReinforcementAgent):
       it will be called on your behalf
     """
     "*** YOUR CODE HERE ***"
+    qList = list()
+    for a in self.getLegalActions(nextState):
+      qList.append(qvalues[(nextState, a)])
+
+    qval = max(qList)
+    qvalues[(state, action)] +=
+                   self.alpha * (reward + self.discount * qval - qvalues[(state,action)])
     util.raiseNotDefined()
 
 class PacmanQAgent(QLearningAgent):
