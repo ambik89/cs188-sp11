@@ -41,15 +41,13 @@ class ValueIterationAgent(ValueEstimationAgent):
     self.oldV = util.Counter()
     
     for i in range(self.iterations):
-        self.oldV =self.values.copy()
+        self.oldV = self.values.copy()
         for s in self.mdp.getStates():
-            if self.mdp.isTerminal(s):
-                self.values[s] = 0
-                break
             for a in self.mdp.getPossibleActions(s):
-                q = 0
+                q = 0.00
                 for s1, p in self.mdp.getTransitionStatesAndProbs(s,a):
                     q += p * (self.mdp.getReward(s,a,s1) + self.discount * self.oldV[s1])
+                print q
                 self.values[s] = max(self.values[s], q)         
     
   def getValue(self, state):
