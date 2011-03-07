@@ -60,7 +60,7 @@ class QLearningAgent(ReinforcementAgent):
     "*** YOUR CODE HERE ***"
     qList = list()
     for a in self.getLegalActions(state):
-      qList.append(self.qvalues[(state, a)])
+      qList.append(self.getQValue(state, a))
     if len(qList) > 0:
       return max(qList)
     else:
@@ -78,7 +78,7 @@ class QLearningAgent(ReinforcementAgent):
     maxQ = -99999
     maxAlist = list()
     for a in self.getLegalActions(state):
-      q = self.qvalues[(state, a)]
+      q = self.getQValue(state, a)
       if q == maxQ:
         maxAlist.append(a)
       elif q > maxQ:
@@ -121,12 +121,12 @@ class QLearningAgent(ReinforcementAgent):
     "*** YOUR CODE HERE ***"
     qList = list()
     for a in self.getLegalActions(nextState):
-      qList.append(self.qvalues[(nextState, a)])
+      qList.append(self.getQValue(nextState, a))
     if len(qList) > 0:
       qval = max(qList)
     else:
       qval = 0
-    self.qvalues[(state, action)] += self.alpha * (reward + self.discount * qval - self.qvalues[(state,action)])
+    self.qvalues[(state, action)] += self.alpha * (reward + self.discount * qval - self.getQValue(state,action))
 
 
 class PacmanQAgent(QLearningAgent):
