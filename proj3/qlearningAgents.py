@@ -191,8 +191,9 @@ class ApproximateQAgent(PacmanQAgent):
     
     feats = self.featExtractor.getFeatures(state, action)
     q = 0.0
-    for i in range(len(feats)):
-        q += feats[i] * self.w[i]
+
+    for feat in feats:
+      q += feats[feat] * self.w[feat]
     
     return q
 
@@ -211,9 +212,9 @@ class ApproximateQAgent(PacmanQAgent):
       qval = 0
     
     feats = self.featExtractor.getFeatures(state, action)
-    for i in range(len(feats)):
+    for feat in feats:
         correction = reward + self.discount * qval - self.getQValue(state,action)
-        self.w[i] += self.alpha*correction*feats[i]
+        self.w[feat] += self.alpha*correction*feats[feat]
         
   def final(self, state):
     "Called at the end of each game."
