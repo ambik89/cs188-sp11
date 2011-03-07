@@ -192,7 +192,7 @@ class ApproximateQAgent(PacmanQAgent):
     feats = self.featExtractor.getFeatures(state, action)
     q = 0.0
     for i in range(len(feats)):
-        q += feats[i] * w[i]
+        q += feats[i] * self.w[i]
     
     return q
 
@@ -202,10 +202,18 @@ class ApproximateQAgent(PacmanQAgent):
     """
     "*** YOUR CODE HERE ***"
     
+    qList = list()
+    for a in self.getLegalActions(nextState):
+      qList.append(self.getQValue(nextState, a))
+    if len(qList) > 0:
+      qval = max(qList)
+    else:
+      qval = 0
+    
     feats = self.featExtractor.getFeatures(state, action)
     for i in range(len(feats)):
         correction = reward + self.discount * qval - self.getQValue(state,action)
-        w[i] += self.alpha*correction*feats[i]
+        self.w[i] += self.alpha*correction*feats[i]
         
   def final(self, state):
     "Called at the end of each game."
@@ -216,5 +224,4 @@ class ApproximateQAgent(PacmanQAgent):
     if self.episodesSoFar == self.numTraining:
       # you might want to print your weights here for debugging
       "*** YOUR CODE HERE ***"
-      print self.w
       pass
