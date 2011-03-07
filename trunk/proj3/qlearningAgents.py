@@ -77,6 +77,9 @@ class QLearningAgent(ReinforcementAgent):
     "*** YOUR CODE HERE ***"
     maxQ = -99999
     maxAlist = list()
+    if len(self.getLegalActions(state)) == 0:
+      return None
+    
     for a in self.getLegalActions(state):
       q = self.getQValue(state, a)
       if q == maxQ:
@@ -86,8 +89,6 @@ class QLearningAgent(ReinforcementAgent):
         maxAlist = list(a)
     if len(maxAlist) > 0:
       return random.choice(maxAlist)
-    else:
-      return None
     util.raiseNotDefined()
 
   def getAction(self, state):
@@ -105,6 +106,13 @@ class QLearningAgent(ReinforcementAgent):
     legalActions = self.getLegalActions(state)
     action = None
     "*** YOUR CODE HERE ***"
+    if len(legalActions) == 0:
+      return None
+    else:
+      if util.flipCoin(self.epsilon):
+        return random.choice(legalActions)
+      else:
+        return self.getPolicy(state)
     util.raiseNotDefined()
 
     return action
