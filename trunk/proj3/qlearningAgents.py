@@ -61,7 +61,10 @@ class QLearningAgent(ReinforcementAgent):
     qList = list()
     for a in self.getLegalActions(state):
       qList.append(self.qvalues[(state, a)])
-    return max(qList)
+    if len(qList) > 0:
+      return max(qList)
+    else:
+      return 0
   
     util.raiseNotDefined()
 
@@ -115,10 +118,12 @@ class QLearningAgent(ReinforcementAgent):
     qList = list()
     for a in self.getLegalActions(nextState):
       qList.append(self.qvalues[(nextState, a)])
-
-    qval = max(qList)
+    if len(qList) > 0:
+      qval = max(qList)
+    else:
+      qval = 0
     self.qvalues[(state, action)] += self.alpha * (reward + self.discount * qval - self.qvalues[(state,action)])
-    util.raiseNotDefined()
+
 
 class PacmanQAgent(QLearningAgent):
   "Exactly the same as QLearningAgent, but with different default parameters"
