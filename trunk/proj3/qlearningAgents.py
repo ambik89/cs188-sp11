@@ -46,7 +46,7 @@ class QLearningAgent(ReinforcementAgent):
       a state or (state,action) tuple
     """
     "*** YOUR CODE HERE ***"
-    return qvalues[(state,action)]
+    return self.qvalues[(state,action)]
     util.raiseNotDefined()
 
 
@@ -60,7 +60,7 @@ class QLearningAgent(ReinforcementAgent):
     "*** YOUR CODE HERE ***"
     qList = list()
     for a in self.getLegalActions(state):
-      qList.append(qvalues[(state, a)])
+      qList.append(self.qvalues[(state, a)])
     return max(qList)
   
     util.raiseNotDefined()
@@ -75,7 +75,7 @@ class QLearningAgent(ReinforcementAgent):
     maxQ = -99999
     maxA = None
     for a in self.getLegalActions(state):
-      q = qvalues[(state, a)]
+      q = self.qvalues[(state, a)]
       if q > maxQ:
         maxQ = q
         maxA = a
@@ -114,11 +114,10 @@ class QLearningAgent(ReinforcementAgent):
     "*** YOUR CODE HERE ***"
     qList = list()
     for a in self.getLegalActions(nextState):
-      qList.append(qvalues[(nextState, a)])
+      qList.append(self.qvalues[(nextState, a)])
 
     qval = max(qList)
-    qvalues[(state, action)] +=
-                   self.alpha * (reward + self.discount * qval - qvalues[(state,action)])
+    self.qvalues[(state, action)] += self.alpha * (reward + self.discount * qval - self.qvalues[(state,action)])
     util.raiseNotDefined()
 
 class PacmanQAgent(QLearningAgent):
