@@ -86,7 +86,7 @@ class QLearningAgent(ReinforcementAgent):
         maxAlist.append(a)
       elif q > maxQ:
         maxQ = q
-        maxAlist = list(a)
+        maxAlist = [a]
     return random.choice(maxAlist)
     util.raiseNotDefined()
 
