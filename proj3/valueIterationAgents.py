@@ -43,14 +43,14 @@ class ValueIterationAgent(ValueEstimationAgent):
     for i in range(self.iterations):
         self.oldV = self.values.copy()
         for s in self.mdp.getStates():
+            qValues = list()
             for a in self.mdp.getPossibleActions(s):
                 q = 0.0
                 for (s1, p) in self.mdp.getTransitionStatesAndProbs(s,a):
                     q += p * (self.mdp.getReward(s,a,s1) + self.discount * self.oldV[s1])
-                if self.mdp.isTerminal(s1):
-                    self.values[s] = q
-                else:
-                    self.values[s] = max(self.values[s], q)
+                qValues.append(q)
+            if len(qValues) > 0:
+                self.values[s] = max(qValues)
     
   def getValue(self, state):
     """
@@ -68,7 +68,8 @@ class ValueIterationAgent(ValueEstimationAgent):
       to derive it on the fly.
     """
     "*** YOUR CODE HERE ***"
-    q = 0
+    
+    q = 0.0
     for s1, p in self.mdp.getTransitionStatesAndProbs(state,action):
         q += p * (self.mdp.getReward(state,action,s1) + self.discount * self.values[s1])
     return q
