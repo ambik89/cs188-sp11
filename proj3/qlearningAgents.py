@@ -75,11 +75,11 @@ class QLearningAgent(ReinforcementAgent):
       you should return None.
     """
     "*** YOUR CODE HERE ***"
-    maxQ = -99999
-    maxAlist = list()
     if len(self.getLegalActions(state)) == 0:
       return None
     
+    maxQ = -99999
+    maxAlist = list()
     for a in self.getLegalActions(state):
       q = self.getQValue(state, a)
       if q == maxQ:
@@ -87,8 +87,7 @@ class QLearningAgent(ReinforcementAgent):
       elif q > maxQ:
         maxQ = q
         maxAlist = list(a)
-    if len(maxAlist) > 0:
-      return random.choice(maxAlist)
+    return random.choice(maxAlist)
     util.raiseNotDefined()
 
   def getAction(self, state):
@@ -105,17 +104,15 @@ class QLearningAgent(ReinforcementAgent):
     # Pick Action
     legalActions = self.getLegalActions(state)
     action = None
+    
     "*** YOUR CODE HERE ***"
     if len(legalActions) == 0:
       return None
+    if util.flipCoin(self.epsilon):
+      return random.choice(legalActions)
     else:
-      if util.flipCoin(self.epsilon):
-        return random.choice(legalActions)
-      else:
-        return self.getPolicy(state)
+      return self.getPolicy(state)
     util.raiseNotDefined()
-
-    return action
 
   def update(self, state, action, nextState, reward):
     """
