@@ -227,8 +227,8 @@ class ParticleFilter(InferenceModule):
     "*** YOUR CODE HERE ***"
     numGhosts = gameState.getNumAgents()-1
     # numGhosts should be == 1
-    print self.numParticles
-    print numGhosts
+    #print self.numParticles
+    #print numGhosts
 
     particleList = []
     
@@ -279,7 +279,13 @@ class ParticleFilter(InferenceModule):
     position.
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    newParticleList = []
+    for p in self.particleList:
+      newPosDist = self.getPositionDistribution(self.setGhostPosition(gameState, p))
+      newPos = util.sampleFromCounter(newPosDist)
+      newParticleList.append(newPos)
+
+    self.particleList = newParticleList
 
   def getBeliefDistribution(self):
     """
