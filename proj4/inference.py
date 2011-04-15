@@ -276,14 +276,15 @@ class ParticleFilter(InferenceModule):
     newParticleList = []
 
     # Case 1: The ghost has been captured by Pacman
-    for i in range(self.numParticles):
-      particle = self.getJailPosition()
-      newParticleList.append(particle)
-      self.particleList = newParticleList
-      return
+    if noisyDistance == None:
+      for i in range(self.numParticles):
+        particle = self.getJailPosition()
+        newParticleList.append(particle)
+        self.particleList = newParticleList
+        return
 
     # Case 2: all weights are 0
-    if sum(weights) == 0:
+    if weights[weights.argMax()] == 0:
       self.initializeUniformly
       return
 
