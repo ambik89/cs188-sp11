@@ -281,10 +281,14 @@ class ParticleFilter(InferenceModule):
       weights.append(emissionModel[trueDistance])
     """
     weights = self.getBeliefDistribution()
+
+    newParticleList = []
+    for p in self.particleList:
+      newParticle = util.sample(weights, self.particleList)
+      newParticleList.append(newParticle)
     
-    self.particleList = util.nSample(weights, self.particleList, self.numParticles)
+    self.particleList = newParticleList
     
-    util.raiseNotDefined()
     
   def elapseTime(self, gameState):
     """
@@ -328,6 +332,7 @@ class ParticleFilter(InferenceModule):
     for p in self.particleList:
       trueDistance = util.manhattanDistance(p, self.pacmanPosition)
       beliefs[p] += emissionModel[trueDistance]
+    beliefs.normalize()
 
     return beliefs
 
