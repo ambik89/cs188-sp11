@@ -239,7 +239,7 @@ class ParticleFilter(InferenceModule):
       particle = tuple(particle)
       particleList.append(particle)
         
-    print particleList
+    self.particleList = particleList
   
   def observe(self, observation, gameState):
     """
@@ -266,6 +266,7 @@ class ParticleFilter(InferenceModule):
     emissionModel = busters.getObservationDistribution(noisyDistance)
     pacmanPosition = gameState.getPacmanPosition()
     "*** YOUR CODE HERE ***"
+    
     util.raiseNotDefined()
     
   def elapseTime(self, gameState):
