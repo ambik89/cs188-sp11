@@ -139,7 +139,7 @@ class ExactInference(InferenceModule):
     
     for p in self.legalPositions:
       trueDistance = util.manhattanDistance(p, pacmanPosition)
-      print "emissionModel: ", emissionModel[trueDistance]
+      #print "emissionModel: ", emissionModel[trueDistance]
       if emissionModel[trueDistance] > 0:
               allPossible[p] = emissionModel[trueDistance] * self.beliefs[p]
     allPossible.normalize()
@@ -197,7 +197,7 @@ class ExactInference(InferenceModule):
     for oldPos in self.legalPositions:
         newPosDist = self.getPositionDistribution(self.setGhostPosition(gameState, oldPos))
         for newPos, prob in newPosDist.items():
-            newBeliefs[newPos] = self.beliefs[newPos]* prob
+            newBeliefs[newPos] += self.beliefs[oldPos]* prob
     newBeliefs.normalize()
     self.beliefs = newBeliefs
     
