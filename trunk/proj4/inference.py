@@ -140,7 +140,7 @@ class ExactInference(InferenceModule):
     for p in self.legalPositions:
       trueDistance = util.manhattanDistance(p, pacmanPosition)
       if emissionModel[trueDistance] > 0:
-              allPossible[p] = emissionModel[trueDistance] * self.beliefs[p]
+        allPossible[p] = emissionModel[trueDistance] * self.beliefs[p]
     allPossible.normalize()
         
     "*** YOUR CODE HERE ***"
@@ -263,6 +263,18 @@ class ParticleFilter(InferenceModule):
     emissionModel = busters.getObservationDistribution(noisyDistance)
     pacmanPosition = gameState.getPacmanPosition()
     "*** YOUR CODE HERE ***"
+    self.observation = noisyDistance
+    self.pacmanPosition = pacmanPosition
+
+    """
+    weights = []
+    for p in self.particleList:
+      trueDistance = util.manhattanDistance(p, pacmanPosition)
+      weights.append(emissionModel[trueDistance])
+    """
+    weights = self.getBeliefDistribution()
+    
+    self.particleList = nSample(weights, self.particleList, self.numParticles)
     
     util.raiseNotDefined()
     
@@ -293,7 +305,14 @@ class ParticleFilter(InferenceModule):
     ghost locations conditioned on all evidence and time passage.
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    emissionModel = busters.getObservationDistribution(self.observation)
+    
+    beliefs = util.Counter()
+    for p in self.particleList:
+      trueDistance = util.manhattanDistance(p, self.pacmanPosition)
+      beliefs[p] = emissionModel[trueDistance]
+
+    return beliefs
 
 class MarginalInference(InferenceModule):
   "A wrapper around the JointInference module that returns marginal beliefs about ghosts."
