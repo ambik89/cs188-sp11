@@ -217,6 +217,11 @@ class ParticleFilter(InferenceModule):
   def __init__(self, ghostAgent, numParticles=300):
      InferenceModule.__init__(self, ghostAgent);
      self.setNumParticles(numParticles)
+
+     #trying
+     print "INIT"
+     self.pacmanPosition = None
+     self.observation = None
   
   def setNumParticles(self, numParticles):
     self.numParticles = numParticles
@@ -259,10 +264,13 @@ class ParticleFilter(InferenceModule):
           prior distribution by calling initializeUniformly. Remember to
           change particles to jail if called for.
     """
+    print "observe() is called"
     noisyDistance = observation
     emissionModel = busters.getObservationDistribution(noisyDistance)
     pacmanPosition = gameState.getPacmanPosition()
     "*** YOUR CODE HERE ***"
+    print "Pacman position: ", pacmanPosition
+    print "Noisy distance: ", noisyDistance
     self.observation = noisyDistance
     self.pacmanPosition = pacmanPosition
 
@@ -274,7 +282,7 @@ class ParticleFilter(InferenceModule):
     """
     weights = self.getBeliefDistribution()
     
-    self.particleList = nSample(weights, self.particleList, self.numParticles)
+    self.particleList = util.nSample(weights, self.particleList, self.numParticles)
     
     util.raiseNotDefined()
     
@@ -305,13 +313,21 @@ class ParticleFilter(InferenceModule):
     ghost locations conditioned on all evidence and time passage.
     """
     "*** YOUR CODE HERE ***"
-    print self.pacmanPosition
-    emissionModel = busters.getObservationDistribution(self.observation)
-    
+    print "getBeliefDistribution is called"
+
     beliefs = util.Counter()
+    
+    if self.observation == None:
+      for p in self.particleList:
+        beliefs[p] = 1
+      beliefs.normalize()
+      return beliefs
+    
+    emissionModel = busters.getObservationDistribution(self.observation)
+
     for p in self.particleList:
       trueDistance = util.manhattanDistance(p, self.pacmanPosition)
-      beliefs[p] = emissionModel[trueDistance]
+      beliefs[p] += emissionModel[trueDistance]
 
     return beliefs
 
