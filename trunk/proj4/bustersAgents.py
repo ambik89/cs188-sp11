@@ -130,11 +130,10 @@ class GreedyBustersAgent(BustersAgent):
     minDist2 = 999999
     bestAction = None       
     for action in gameState.getLegalPacmanActions():
-        print action
- #       dist = self.distancer.getDistance(, closestGhostPos)
- #       if dist < minDist2:
- #           minDist = dist
- #          bestAction = p
-    
+        successorPosition = Actions.getSuccessor(gameState.getPacmanPosition(), action)
+        dist = self.distancer.getDistance(successorPosition, closestGhostPos)
+        if dist < minDist2:
+            minDist2 = dist
+            bestAction = action
     return bestAction
     util.raiseNotDefined()
