@@ -217,11 +217,6 @@ class ParticleFilter(InferenceModule):
   def __init__(self, ghostAgent, numParticles=300):
      InferenceModule.__init__(self, ghostAgent);
      self.setNumParticles(numParticles)
-
-     #trying
-     print "INIT"
-     self.pacmanPosition = None
-     self.observation = None
   
   def setNumParticles(self, numParticles):
     self.numParticles = numParticles
@@ -242,6 +237,8 @@ class ParticleFilter(InferenceModule):
       particleList.append(particle)
         
     self.particleList = particleList
+    self.pacmanPosition = None
+    self.observation = None
   
   def observe(self, observation, gameState):
     """
@@ -264,25 +261,32 @@ class ParticleFilter(InferenceModule):
           prior distribution by calling initializeUniformly. Remember to
           change particles to jail if called for.
     """
-    print "observe() is called"
+    #print "observe() is called"
     noisyDistance = observation
     emissionModel = busters.getObservationDistribution(noisyDistance)
     pacmanPosition = gameState.getPacmanPosition()
+    
     "*** YOUR CODE HERE ***"
-    print "Pacman position: ", pacmanPosition
-    print "Noisy distance: ", noisyDistance
+    #print "Pacman position: ", pacmanPosition
+    #print "Noisy distance: ", noisyDistance
     self.observation = noisyDistance
     self.pacmanPosition = pacmanPosition
 
-    """
-    weights = []
-    for p in self.particleList:
-      trueDistance = util.manhattanDistance(p, pacmanPosition)
-      weights.append(emissionModel[trueDistance])
-    """
     weights = self.getBeliefDistribution()
-
     newParticleList = []
+
+    # Case 1: The ghost has been captured by Pacman
+    for i in range(self.numParticles):
+      particle = self.getJailPosition()
+      newParticleList.append(particle)
+      self.particleList = newParticleList
+      return
+
+    # Case 2: all weights are 0
+    if sum(weights) == 0:
+      self.initializeUniformly
+      return
+
     for p in self.particleList:
       newParticle = util.sample(weights, self.particleList)
       newParticleList.append(newParticle)
@@ -317,7 +321,7 @@ class ParticleFilter(InferenceModule):
     ghost locations conditioned on all evidence and time passage.
     """
     "*** YOUR CODE HERE ***"
-    print "getBeliefDistribution is called"
+    #print "getBeliefDistribution is called"
 
     beliefs = util.Counter()
     
