@@ -226,17 +226,14 @@ class ParticleFilter(InferenceModule):
     "Initializes a list of particles. Use self.numParticles for the number of particles"
     "*** YOUR CODE HERE ***"
     numGhosts = gameState.getNumAgents()-1
+    # numGhosts should be == 1
     print self.numParticles
     print numGhosts
 
     particleList = []
     
     for p in range(self.numParticles):
-      particle = []
-      for g in range(numGhosts):
-        pos = random.choice(self.legalPositions)
-        particle.append(pos)
-      particle = tuple(particle)
+      particle = random.choice(self.legalPositions)
       particleList.append(particle)
         
     self.particleList = particleList
