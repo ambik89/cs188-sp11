@@ -135,18 +135,18 @@ class ExactInference(InferenceModule):
       trueDistance = util.manhattanDistance(p, pacmanPosition)
       if emissionModel[trueDistance] > 0: 
           if allPossible[p] == 0:
-              allPossible[p] = emissionModel[trueDistance]
-          else :
-              allPossible[p] *= emissionModel[trueDistance]
+              allPossible[p] = emissionModel[trueDistance] * self.beliefs[p]
     allPossible.normalize()
         
     "*** YOUR CODE HERE ***"
-    self.beliefs = allPossible
     
     if noisyDistance == None:
         newBeliefs = util.Counter()
         newBeliefs[self.getJailPosition()] = 1
         self.beliefs = newBeliefs
+    else:
+        self.beliefs = allPossible
+    
     
     
   def elapseTime(self, gameState):
