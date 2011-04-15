@@ -156,6 +156,7 @@ class ExactInference(InferenceModule):
     current position (e.g., for DirectionalGhost).  However, this is not a problem,
     as Pacman's current position is known.
 
+
     In order to obtain the distribution over new positions for the
     ghost, given its previous position (oldPos) as well as Pacman's
     current position, use this line of code:
@@ -200,9 +201,6 @@ class ExactInference(InferenceModule):
     newBeliefs.normalize()
     self.beliefs = newBeliefs
     
-            
-    
-
   def getBeliefDistribution(self):
     return self.beliefs
 
@@ -227,6 +225,21 @@ class ParticleFilter(InferenceModule):
   def initializeUniformly(self, gameState):
     "Initializes a list of particles. Use self.numParticles for the number of particles"
     "*** YOUR CODE HERE ***"
+    numGhosts = gameState.getNumAgents()-1
+    print self.numParticles
+    print numGhosts
+
+    particleList = []
+    
+    for p in range(self.numParticles):
+      particle = []
+      for g in range(numGhosts):
+        pos = random.choice(self.legalPositions)
+        particle.append(pos)
+      particle = tuple(particle)
+      particleList.append(particle)
+        
+    print particleList
   
   def observe(self, observation, gameState):
     """
