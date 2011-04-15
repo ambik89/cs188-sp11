@@ -136,4 +136,3 @@ class GreedyBustersAgent(BustersAgent):
             minDist2 = dist
             bestAction = action
     return bestAction
-    util.raiseNotDefined()
