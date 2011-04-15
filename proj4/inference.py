@@ -125,27 +125,28 @@ class ExactInference(InferenceModule):
     noisyDistance = observation
     emissionModel = busters.getObservationDistribution(noisyDistance)
     pacmanPosition = gameState.getPacmanPosition()
-    
+
     "*** YOUR CODE HERE ***"
     # Replace this code with a correct observation update
     # Be sure to handle the jail.
+    if noisyDistance == None:
+        newBeliefs = util.Counter()
+        newBeliefs[self.getJailPosition()] = 1
+        self.beliefs = newBeliefs
+        return
+    
     allPossible = util.Counter()
     
     for p in self.legalPositions:
       trueDistance = util.manhattanDistance(p, pacmanPosition)
+      print "emissionModel: ", emissionModel[trueDistance]
       if emissionModel[trueDistance] > 0: 
           if allPossible[p] == 0:
               allPossible[p] = emissionModel[trueDistance] * self.beliefs[p]
     allPossible.normalize()
         
     "*** YOUR CODE HERE ***"
-    
-    if noisyDistance == None:
-        newBeliefs = util.Counter()
-        newBeliefs[self.getJailPosition()] = 1
-        self.beliefs = newBeliefs
-    else:
-        self.beliefs = allPossible
+    self.beliefs = allPossible
     
     
     
