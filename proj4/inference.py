@@ -305,6 +305,7 @@ class ParticleFilter(InferenceModule):
     ghost locations conditioned on all evidence and time passage.
     """
     "*** YOUR CODE HERE ***"
+    print self.pacmanPosition
     emissionModel = busters.getObservationDistribution(self.observation)
     
     beliefs = util.Counter()
