@@ -473,20 +473,31 @@ class JointParticleFilter:
     "*** YOUR CODE HERE ***"
     newParticleList = []
     
-    # Case 1: The ghost has been captured by Pacman
-    for j in range(self.numParticles):
-        newParticle = list(self.particles[j]) 
+    # Case 1: Check for ghosts that have been captured by Pacman
+    ghostsCaptured = False
+    for k in range(self.numGhosts):
+      if noisyDistances[k] == None:
+        ghostsCaptured = True
+        break
+
+    if ghostsCaptured == True:
+      for j in range(self.numParticles):
+        newParticle = list(self.particles[j])
+        
         for i in range(self.numGhosts):
-            if noisyDistances[i] == None:
-                newParticle[i] = self.getJailPosition(i)
+          if noisyDistances[i] == None:
+            newParticle[i] = self.getJailPosition(i)
+            
         newParticleList.append(tuple(newParticle))                  
     self.particles = newParticleList
-    
+
+    # Get weights
     weights = self.getBeliefDistribution()
     allPossible = util.Counter()
     for particle, prob in weights.items():
       weight = 0
       for i in range(self.numGhosts):
+        print "EMISSION MODELS at [i][trueDistance]: ", emissionModels[i][trueDistance]
         trueDistance = util.manhattanDistance(particle[i], pacmanPosition)
         weight += emissionModels[i][trueDistance] * prob
         
@@ -496,7 +507,7 @@ class JointParticleFilter:
 
     # Case 2: all weights are 0
     if allPossible[allPossible.argMax()] == 0:
-      self.initializeUniformly
+      self.initializeParticles()
       return
 
     for p in self.particles:
