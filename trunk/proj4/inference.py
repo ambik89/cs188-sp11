@@ -237,8 +237,6 @@ class ParticleFilter(InferenceModule):
       particleList.append(particle)
         
     self.particleList = particleList
-    self.pacmanPosition = None
-    self.observation = None
   
   def observe(self, observation, gameState):
     """
@@ -267,11 +265,6 @@ class ParticleFilter(InferenceModule):
     pacmanPosition = gameState.getPacmanPosition()
     
     "*** YOUR CODE HERE ***"
-    #print "Pacman position: ", pacmanPosition
-    #print "Noisy distance: ", noisyDistance
-    self.observation = noisyDistance
-    self.pacmanPosition = pacmanPosition
-
     weights = self.getBeliefDistribution()
     
     newParticleList = []
@@ -289,7 +282,6 @@ class ParticleFilter(InferenceModule):
       trueDistance = util.manhattanDistance(p, pacmanPosition)
       allPossible[p] = emissionModel[trueDistance] * weights[p]
     allPossible.normalize()
-
 
     # Case 2: all weights are 0
     if allPossible[allPossible.argMax()] == 0:
@@ -334,26 +326,7 @@ class ParticleFilter(InferenceModule):
     for part in self.particleList: dist[part] += 1
     dist.normalize()
     return dist
-    """
-    #print "getBeliefDistribution is called"
 
-    beliefs = util.Counter()
-    
-    if self.observation == None:
-      for p in self.particleList:
-        beliefs[p] = 1
-      beliefs.normalize()
-      return beliefs
-    
-    emissionModel = busters.getObservationDistribution(self.observation)
-
-    for p in self.particleList:
-      trueDistance = util.manhattanDistance(p, self.pacmanPosition)
-      beliefs[p] += emissionModel[trueDistance]
-    beliefs.normalize()
-
-    return beliefs
-"""
 class MarginalInference(InferenceModule):
   "A wrapper around the JointInference module that returns marginal beliefs about ghosts."
 
