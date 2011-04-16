@@ -489,24 +489,27 @@ class JointParticleFilter:
             newParticle[i] = self.getJailPosition(i)
             
         newParticleList.append(tuple(newParticle))                  
-    self.particles = newParticleList
+      self.particles = newParticleList
 
     # Get weights
     weights = self.getBeliefDistribution()
+    print "Particles: ", self.particles
+    print "Belief distribution: ", weights
     allPossible = util.Counter()
     for particle, prob in weights.items():
       weight = 0
       for i in range(self.numGhosts):
-        print "EMISSION MODELS at [i][trueDistance]: ", emissionModels[i][trueDistance]
         trueDistance = util.manhattanDistance(particle[i], pacmanPosition)
         weight += emissionModels[i][trueDistance] * prob
-        
+
+      print "Particle ", particle, "has weight: ", weight  
       allPossible[particle] = weight
     allPossible.normalize()
 
 
     # Case 2: all weights are 0
     if allPossible[allPossible.argMax()] == 0:
+      print "ALL WEIGHTS ARE 0"
       self.initializeParticles()
       return
 
