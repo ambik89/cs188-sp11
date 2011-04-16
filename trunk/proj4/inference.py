@@ -441,6 +441,28 @@ class JointParticleFilter:
 
   def getJailPosition(self, i):
     return (2 * i + 1, 1);
+
+  def updateParticlesForJailedGhosts(self, noisyDistances):
+    newParticleList = []
+    
+    ghostsCaptured = False
+    for k in range(self.numGhosts):
+      if noisyDistances[k] == None:
+        ghostsCaptured = True
+        break
+
+    if ghostsCaptured == True:
+      print "GHOSTS CAPTURED, REWRITE DEM PARTICLES"
+      for j in range(self.numParticles):
+        newParticle = list(self.particles[j])
+        
+        for i in range(self.numGhosts):
+          if noisyDistances[i] == None:
+            newParticle[i] = self.getJailPosition(i)
+            
+        newParticleList.append(tuple(newParticle))                  
+      self.particles = newParticleList
+
   
   def observeState(self, gameState):
     """
@@ -472,26 +494,10 @@ class JointParticleFilter:
 
     "*** YOUR CODE HERE ***"
     newParticleList = []
-    
+
     # Case 1: Check for ghosts that have been captured by Pacman
-    ghostsCaptured = False
-    for k in range(self.numGhosts):
-      if noisyDistances[k] == None:
-        ghostsCaptured = True
-        break
-
-    if ghostsCaptured == True:
-      for j in range(self.numParticles):
-        newParticle = list(self.particles[j])
-        
-        for i in range(self.numGhosts):
-          if noisyDistances[i] == None:
-            newParticle[i] = self.getJailPosition(i)
-            
-        newParticleList.append(tuple(newParticle))                  
-      self.particles = newParticleList
-
-
+    self.updateParticlesForJailedGhosts(noisyDistances)
+    
     # Get weights
     weights = self.getBeliefDistribution()
     allPossible = util.Counter()
@@ -507,6 +513,7 @@ class JointParticleFilter:
     # Case 2: all weights are 0
     if allPossible[allPossible.argMax()] == 0:
       self.initializeParticles()
+      self.updateParticlesForJailedGhosts(noisyDistances)
       return
 
     for i in range(self.numParticles):
