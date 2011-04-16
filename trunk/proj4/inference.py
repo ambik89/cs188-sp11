@@ -452,7 +452,6 @@ class JointParticleFilter:
         break
 
     if ghostsCaptured == True:
-      print "GHOSTS CAPTURED, REWRITE DEM PARTICLES"
       for j in range(self.numParticles):
         newParticle = list(self.particles[j])
         
