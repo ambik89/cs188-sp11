@@ -481,10 +481,8 @@ class JointParticleFilter:
         break
 
     if ghostsCaptured == True:
-      print "Ghost is captured!"
       for j in range(self.numParticles):
         newParticle = list(self.particles[j])
-        print "Setting particle j = ", j
         
         for i in range(self.numGhosts):
           if noisyDistances[i] == None:
@@ -493,32 +491,28 @@ class JointParticleFilter:
         newParticleList.append(tuple(newParticle))                  
       self.particles = newParticleList
 
+
     # Get weights
     weights = self.getBeliefDistribution()
-    print "Particles: ", self.particles
-    print "Belief distribution: ", weights
     allPossible = util.Counter()
     for particle, prob in weights.items():
       weight = 0
       for i in range(self.numGhosts):
         trueDistance = util.manhattanDistance(particle[i], pacmanPosition)
         weight += emissionModels[i][trueDistance] * prob
-
-      print "Particle ", particle, "has weight: ", weight  
       allPossible[particle] = weight
     allPossible.normalize()
 
 
     # Case 2: all weights are 0
     if allPossible[allPossible.argMax()] == 0:
-      print "ALL WEIGHTS ARE 0"
       self.initializeParticles()
       return
 
-    for p in self.particles:
+    for i in range(self.numParticles):
       newParticle = util.sample(allPossible, self.particles)
       newParticleList.append(newParticle)
-    
+      
     self.particles = newParticleList
   
   def getBeliefDistribution(self):
