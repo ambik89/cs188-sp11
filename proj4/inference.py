@@ -481,8 +481,10 @@ class JointParticleFilter:
         break
 
     if ghostsCaptured == True:
+      print "Ghost is captured!"
       for j in range(self.numParticles):
         newParticle = list(self.particles[j])
+        print "Setting particle j = ", j
         
         for i in range(self.numGhosts):
           if noisyDistances[i] == None:
