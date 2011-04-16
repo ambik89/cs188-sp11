@@ -322,6 +322,11 @@ class ParticleFilter(InferenceModule):
     ghost locations conditioned on all evidence and time passage.
     """
     "*** YOUR CODE HERE ***"
+    dist = util.Counter()
+    for part in self.particleList: dist[part] += 1
+    dist.normalize()
+    return dist
+    """
     #print "getBeliefDistribution is called"
 
     beliefs = util.Counter()
@@ -340,7 +345,7 @@ class ParticleFilter(InferenceModule):
     beliefs.normalize()
 
     return beliefs
-
+"""
 class MarginalInference(InferenceModule):
   "A wrapper around the JointInference module that returns marginal beliefs about ghosts."
 
@@ -449,7 +454,7 @@ class JointParticleFilter:
                                                      i, self.ghostAgents[i])
         newPos = util.sampleFromCounter(newPosDist)
         newParticle[i] = newPos
-        
+
       newParticles.append(tuple(newParticle))
     self.particles = newParticles
 
