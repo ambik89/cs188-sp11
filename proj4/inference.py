@@ -273,6 +273,7 @@ class ParticleFilter(InferenceModule):
     self.pacmanPosition = pacmanPosition
 
     weights = self.getBeliefDistribution()
+    
     newParticleList = []
 
     # Case 1: The ghost has been captured by Pacman
@@ -282,14 +283,21 @@ class ParticleFilter(InferenceModule):
         newParticleList.append(particle)
         self.particleList = newParticleList
         return
+    
+    allPossible = util.Counter()
+    for p, prob in weights.items():
+      trueDistance = util.manhattanDistance(p, pacmanPosition)
+      allPossible[p] = emissionModel[trueDistance] * weights[p]
+    allPossible.normalize()
+
 
     # Case 2: all weights are 0
-    if weights[weights.argMax()] == 0:
+    if allPossible[weights.argMax()] == 0:
       self.initializeUniformly
       return
 
     for p in self.particleList:
-      newParticle = util.sample(weights, self.particleList)
+      newParticle = util.sample(allPossible, self.particleList)
       newParticleList.append(newParticle)
     
     self.particleList = newParticleList
