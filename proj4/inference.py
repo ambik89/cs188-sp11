@@ -492,8 +492,6 @@ class JointParticleFilter:
     emissionModels = [busters.getObservationDistribution(dist) for dist in noisyDistances]
 
     "*** YOUR CODE HERE ***"
-    newParticleList = []
-
     # Case 1: Check for ghosts that have been captured by Pacman
     self.updateParticlesForJailedGhosts(noisyDistances)
     
@@ -505,9 +503,11 @@ class JointParticleFilter:
       for i in range(self.numGhosts):
         trueDistance = util.manhattanDistance(particle[i], pacmanPosition)
         weight += emissionModels[i][trueDistance] * prob
+        if prob == 0:
+          weight = 0
+          break
       allPossible[particle] = weight
     allPossible.normalize()
-
 
     # Case 2: all weights are 0
     if allPossible[allPossible.argMax()] == 0:
@@ -515,6 +515,7 @@ class JointParticleFilter:
       self.updateParticlesForJailedGhosts(noisyDistances)
       return
 
+    newParticleList = []
     for i in range(self.numParticles):
       newParticle = util.sample(allPossible, self.particles)
       newParticleList.append(newParticle)
