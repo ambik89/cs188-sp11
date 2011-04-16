@@ -471,9 +471,9 @@ class JointParticleFilter:
     emissionModels = [busters.getObservationDistribution(dist) for dist in noisyDistances]
 
     "*** YOUR CODE HERE ***"
+    newParticleList = []
     
     # Case 1: The ghost has been captured by Pacman
-    newParticleList = []
     for j in range(self.numParticles):
         newParticle = list(self.particles[j]) 
         for i in range(self.numGhosts):
@@ -484,9 +484,13 @@ class JointParticleFilter:
     
     weights = self.getBeliefDistribution()
     allPossible = util.Counter()
-    for p, prob in weights.items():
-      trueDistance = util.manhattanDistance(p, pacmanPosition)
-      allPossible[p] = emissionModel[trueDistance] * weights[p]
+    for particle, prob in weights.items():
+      weight = 0
+      for i in range(self.numGhosts):
+        trueDistance = util.manhattanDistance(particle[i], pacmanPosition)
+        weight += emissionModels[i][trueDistance] * prob
+        
+      allPossible[particle] = weight
     allPossible.normalize()
 
 
@@ -495,11 +499,11 @@ class JointParticleFilter:
       self.initializeUniformly
       return
 
-    for p in self.particleList:
-      newParticle = util.sample(allPossible, self.particleList)
+    for p in self.particles:
+      newParticle = util.sample(allPossible, self.particles)
       newParticleList.append(newParticle)
     
-    self.particleList = newParticleList
+    self.particles = newParticleList
   
   def getBeliefDistribution(self):
     dist = util.Counter()
