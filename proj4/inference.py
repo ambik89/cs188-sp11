@@ -292,7 +292,7 @@ class ParticleFilter(InferenceModule):
 
 
     # Case 2: all weights are 0
-    if allPossible[weights.argMax()] == 0:
+    if allPossible[allPossible.argMax()] == 0:
       self.initializeUniformly
       return
 
@@ -498,6 +498,35 @@ class JointParticleFilter:
     emissionModels = [busters.getObservationDistribution(dist) for dist in noisyDistances]
 
     "*** YOUR CODE HERE ***"
+    
+    # Case 1: The ghost has been captured by Pacman
+    newParticleList = []
+    for j in range(self.numParticles):
+        newParticle = list(self.particles[j]) 
+        for i in range(self.numGhosts):
+            if noisyDistances[i] == None:
+                newParticle[i] = self.getJailPosition(i)
+        newParticleList.append(tuple(newParticle))                  
+    self.particles = newParticleList
+    
+    weights = self.getBeliefDistribution()
+    allPossible = util.Counter()
+    for p, prob in weights.items():
+      trueDistance = util.manhattanDistance(p, pacmanPosition)
+      allPossible[p] = emissionModel[trueDistance] * weights[p]
+    allPossible.normalize()
+
+
+    # Case 2: all weights are 0
+    if allPossible[allPossible.argMax()] == 0:
+      self.initializeUniformly
+      return
+
+    for p in self.particleList:
+      newParticle = util.sample(allPossible, self.particleList)
+      newParticleList.append(newParticle)
+    
+    self.particleList = newParticleList
   
   def getBeliefDistribution(self):
     dist = util.Counter()
