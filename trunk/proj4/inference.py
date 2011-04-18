@@ -225,11 +225,6 @@ class ParticleFilter(InferenceModule):
   def initializeUniformly(self, gameState):
     "Initializes a list of particles. Use self.numParticles for the number of particles"
     "*** YOUR CODE HERE ***"
-    numGhosts = gameState.getNumAgents()-1
-    # numGhosts should be == 1
-    #print self.numParticles
-    #print numGhosts
-
     particleList = []
     
     for p in range(self.numParticles):
@@ -280,7 +275,7 @@ class ParticleFilter(InferenceModule):
     allPossible = util.Counter()
     for p, prob in weights.items():
       trueDistance = util.manhattanDistance(p, pacmanPosition)
-      allPossible[p] = emissionModel[trueDistance] * weights[p]
+      allPossible[p] = emissionModel[trueDistance] * prob
     allPossible.normalize()
 
     # Case 2: all weights are 0
@@ -502,11 +497,10 @@ class JointParticleFilter:
       weight = 0
       for i in range(self.numGhosts):
         trueDistance = util.manhattanDistance(particle[i], pacmanPosition)
-        weight += emissionModels[i][trueDistance] * prob
-        if prob == 0:
-          weight = 0
-          break
+        weight += emissionModels[i][trueDistance]
+      weight *= prob
       allPossible[particle] = weight
+      
     allPossible.normalize()
 
     # Case 2: all weights are 0
@@ -515,6 +509,7 @@ class JointParticleFilter:
       self.updateParticlesForJailedGhosts(noisyDistances)
       return
 
+    # Resample
     newParticleList = []
     for i in range(self.numParticles):
       newParticle = util.sample(allPossible, self.particles)
