@@ -7,16 +7,18 @@
 # For more info, see http://inst.eecs.berkeley.edu/~cs188/sp09/pacman.html
 
 from captureAgents import CaptureAgent
+import distanceCalculator
 import random, time, util
 from game import Directions
 import game
+from util import nearestPoint
 
 #################
 # Team creation #
 #################
 
 def createTeam(firstIndex, secondIndex, isRed,
-               first = 'DummyAgent', second = 'DummyAgent'):
+               first = 'BlitzAgent', second = 'BlitzAgent'):
   """
   This function should return a list of two agents that will form the
   team, initialized using firstIndex and secondIndex as their agent
@@ -71,7 +73,6 @@ class DummyAgent(CaptureAgent):
     Your initialization code goes here, if you need any.
     '''
 
-
   def chooseAction(self, gameState):
     """
     Picks among actions randomly.
@@ -84,3 +85,199 @@ class DummyAgent(CaptureAgent):
 
     return random.choice(actions)
 
+
+class ReflexCaptureAgent(CaptureAgent):
+  """
+  A base class for reflex agents that chooses score-maximizing actions
+  """
+  def registerInitialState(self, gameState):
+    """
+    This method handles the initial setup of the
+    agent to populate useful fields (such as what team
+    we're on). 
+    
+    A distanceCalculator instance caches the maze distances
+    between each pair of positions, so your agents can use:
+    self.distancer.getDistance(p1, p2)
+
+    IMPORTANT: This method may run for at most 15 seconds.
+    """
+
+    ''' 
+    Make sure you do not delete the following line. If you would like to
+    use Manhattan distances instead of maze distances in order to save
+    on initialization time, please take a look at
+    CaptureAgent.registerInitialState in captureAgents.py. 
+    '''
+    CaptureAgent.registerInitialState(self, gameState)
+
+    ''' 
+    Your initialization code goes here, if you need any.
+    '''
+    if self.red:
+      self.agentsOnTeam = gameState.getRedTeamIndices()
+    else:
+      self.agentsOnTeam = gameState.getBlueTeamIndices()
+  
+  def chooseAction(self, gameState):
+    """
+    Picks among the actions with the highest Q(s,a).
+    """
+    actions = gameState.getLegalActions(self.index)
+
+    # You can profile your evaluation time by uncommenting these lines
+    # start = time.time()
+    values = [self.evaluate(gameState, a) for a in actions]
+    # print 'eval time for agent %d: %.4f' % (self.index, time.time() - start)
+
+    maxValue = max(values)
+    bestActions = [a for a, v in zip(actions, values) if v == maxValue]
+
+    return random.choice(bestActions)
+
+  def getSuccessor(self, gameState, action):
+    """
+    Finds the next successor which is a grid position (location tuple).
+    """
+    successor = gameState.generateSuccessor(self.index, action)
+    pos = successor.getAgentState(self.index).getPosition()
+    if pos != nearestPoint(pos):
+      # Only half a grid position was covered
+      return successor.generateSuccessor(self.index, action)
+    else:
+      return successor
+
+  def evaluate(self, gameState, action):
+    """
+    Computes a linear combination of features and feature weights
+    """
+    features = self.getFeatures(gameState, action)
+    weights = self.getWeights(gameState, action)
+    return features * weights
+
+  def getFeatures(self, gameState, action):
+    """
+    Returns a counter of features for the state
+    """
+    features = util.Counter()
+    successor = self.getSuccessor(gameState, action)
+    features['successorScore'] = self.getScore(successor)
+    return features
+
+  def getWeights(self, gameState, action):
+    """
+    Normally, weights do not depend on the gamestate.  They can be either
+    a counter or a dictionary.
+    """
+    return {'successorScore': 1.0}
+
+  def isAtHome(self, gameState):
+    return not gameState.getAgentState(self.index).isPacman
+
+  def getOpponentPositions(self, gameState):
+    # might want to implement inference to store the most likely position
+    # if the enemy position can't be detected (is None)
+    opponentPositions = []
+    for opponentIndex in self.getOpponents(gameState):
+      pos = gameState.getAgentPosition(opponentIndex)
+      if pos != None:
+        opponentPositions.append(pos)
+    return opponentPositions
+
+class BlitzAgent(ReflexCaptureAgent):
+  def chooseAction(self, gameState):
+    evalmode = 'offense'
+    # For now, just do the same thing as OFFENSE unless if we can detect
+    # the enemy. Later we probably want to infer the position of the enemy...
+    opponentPositions = self.getOpponentPositions(gameState)
+    
+    if len(opponentPositions) > 0:
+      myPos = gameState.getAgentState(self.index).getPosition()
+      # do minimax here?
+      # for now, go defense mode if close enough
+      for pos in opponentPositions:
+        if self.getMazeDistance(myPos, pos) < 6 and self.isAtHome(gameState):
+          evalmode = 'defense'
+          break
+    
+    """
+    Picks among the actions with the highest Q(s,a).
+    """
+    actions = gameState.getLegalActions(self.index)
+    
+    # You can profile your evaluation time by uncommenting these lines
+    # start = time.time()
+    values = [self.evaluate(gameState, a, evalmode) for a in actions]
+    # print 'eval time for agent %d: %.4f' % (self.index, time.time() - start)
+
+    maxValue = max(values)
+    bestActions = [a for a, v in zip(actions, values) if v == maxValue]
+
+    return random.choice(bestActions)
+
+  def evaluate(self, gameState, action, mode = 'offense'):
+    """
+    Computes a linear combination of features and feature weights
+    """
+    if mode == 'offense':
+      features = self.getFeaturesOffense(gameState, action)
+      weights = self.getWeightsOffense(gameState, action)
+    elif mode == 'defense':
+      features = self.getFeaturesDefense(gameState, action)
+      weights = self.getWeightsDefense(gameState, action)
+    else:
+      print "UNDEFINED MODE: ", mode
+      return 0
+    return features * weights
+
+  def getFeaturesDefense(self, gameState, action):
+    features = util.Counter()
+    successor = self.getSuccessor(gameState, action)
+
+    myState = successor.getAgentState(self.index)
+    myPos = myState.getPosition()
+
+    # Computes distance to invaders we can see
+    enemies = [successor.getAgentState(i) for i in self.getOpponents(successor)]
+    invaders = [a for a in enemies if a.isPacman and a.getPosition() != None]
+    features['numInvaders'] = len(invaders)
+    if len(invaders) > 0:
+      dists = [self.getMazeDistance(myPos, a.getPosition()) for a in invaders]
+      features['invaderDistance'] = min(dists)
+
+    if action == Directions.STOP: features['stop'] = 1
+    rev = Directions.REVERSE[gameState.getAgentState(self.index).configuration.direction]
+    if action == rev: features['reverse'] = 1
+
+    return features
+  
+  def getWeightsDefense(self, gameState, action):
+    return {'numInvaders': -1000, 'invaderDistance': -10, 'stop': -100, 'reverse': -2}
+  
+  def getFeaturesOffense(self, gameState, action):
+    features = util.Counter()
+    successor = self.getSuccessor(gameState, action)
+    features['successorScore'] = self.getScore(successor)
+
+    # Compute distance to the nearest food
+    foodList = self.getFood(successor).asList()
+    if len(foodList) > 0: # This should always be True,  but better safe than sorry
+      myPos = successor.getAgentState(self.index).getPosition()
+      minDistance = min([self.getMazeDistance(myPos, food) for food in foodList])
+      features['distanceToFood'] = minDistance
+
+    # Compute distance to partner
+    agentsList = self.agentsOnTeam
+    if self.index == self.agentsOnTeam[0]:
+      otherAgentIndex = self.agentsOnTeam[1]
+    else:
+      otherAgentIndex = self.agentsOnTeam[0]
+    myPos = successor.getAgentState(self.index).getPosition()
+    otherPos = successor.getAgentState(otherAgentIndex).getPosition()
+    distanceToAgent = self.getMazeDistance(myPos, otherPos)
+    features['distanceToOther'] = distanceToAgent
+    
+    return features
+
+  def getWeightsOffense(self, gameState, action):
+    return {'successorScore': 100, 'distanceToFood': -5, 'distanceToOther': -1}
