@@ -18,7 +18,7 @@ from util import nearestPoint
 #################
 
 def createTeam(firstIndex, secondIndex, isRed,
-               first = 'BlitzAgent', second = 'BlitzAgent'):
+               first = 'BlitzTopAgent', second = 'BlitzBottomAgent'):
   """
   This function should return a list of two agents that will form the
   team, initialized using firstIndex and secondIndex as their agent
@@ -35,7 +35,11 @@ def createTeam(firstIndex, secondIndex, isRed,
   """
 
   # The following line is an example only; feel free to change it.
-  return [eval(first)(firstIndex), eval(second)(secondIndex)]
+  agent1 = eval(first)(firstIndex)
+  agent2 = eval(second)(secondIndex)
+  agent1.setOtherAgent(agent2)
+  agent2.setOtherAgent(agent1)
+  return [agent1, agent2]
 
 ##########
 # Agents #
@@ -118,6 +122,8 @@ class ReflexCaptureAgent(CaptureAgent):
       self.agentsOnTeam = gameState.getRedTeamIndices()
     else:
       self.agentsOnTeam = gameState.getBlueTeamIndices()
+
+    self.setTarget(gameState)
   
   def chooseAction(self, gameState):
     """
@@ -171,6 +177,12 @@ class ReflexCaptureAgent(CaptureAgent):
     """
     return {'successorScore': 1.0}
 
+  def setOtherAgent(self, other):
+    self.otherAgent = other
+
+  def getMyPos(self, gameState):
+    return gameState.getAgentState(self.index).getPosition()
+
   def isAtHome(self, gameState):
     return not gameState.getAgentState(self.index).isPacman
 
@@ -181,21 +193,32 @@ class ReflexCaptureAgent(CaptureAgent):
     for opponentIndex in self.getOpponents(gameState):
       pos = gameState.getAgentPosition(opponentIndex)
       if pos != None:
-        opponentPositions.append(pos)
+        opponentPositions.append((opponentIndex,pos))
     return opponentPositions
 
+  def getDistToClosestCapsule(self, gameState):
+    myPos = self.getMyPos(gameState)
+    capsuleList = self.getCapsules(gameState)
+    minDistance = 0
+    if len(capsuleList) > 0:
+      minDistance = min([self.getMazeDistance(myPos, capsule) for capsule in capsuleList])
+    return minDistance
+
+  def getMyScaredTimer(self, gameState):
+    return gameState.getAgentState(self.index).scaredTimer
+    
 class BlitzAgent(ReflexCaptureAgent):
   def chooseAction(self, gameState):
     evalmode = 'offense'
     # For now, just do the same thing as OFFENSE unless if we can detect
     # the enemy. Later we probably want to infer the position of the enemy...
+    myPos = self.getMyPos(gameState)
     opponentPositions = self.getOpponentPositions(gameState)
     
     if len(opponentPositions) > 0:
-      myPos = gameState.getAgentState(self.index).getPosition()
       # do minimax here?
       # for now, go defense mode if close enough
-      for pos in opponentPositions:
+      for index, pos in opponentPositions:
         if self.getMazeDistance(myPos, pos) < 6 and self.isAtHome(gameState):
           evalmode = 'defense'
           break
@@ -206,9 +229,9 @@ class BlitzAgent(ReflexCaptureAgent):
     actions = gameState.getLegalActions(self.index)
     
     # You can profile your evaluation time by uncommenting these lines
-    # start = time.time()
+    #start = time.time()
     values = [self.evaluate(gameState, a, evalmode) for a in actions]
-    # print 'eval time for agent %d: %.4f' % (self.index, time.time() - start)
+    #print 'eval time for agent %d: %.4f' % (self.index, time.time() - start)
 
     maxValue = max(values)
     bestActions = [a for a, v in zip(actions, values) if v == maxValue]
@@ -234,8 +257,7 @@ class BlitzAgent(ReflexCaptureAgent):
     features = util.Counter()
     successor = self.getSuccessor(gameState, action)
 
-    myState = successor.getAgentState(self.index)
-    myPos = myState.getPosition()
+    myPos = self.getMyPos(successor)
 
     # Computes distance to invaders we can see
     enemies = [successor.getAgentState(i) for i in self.getOpponents(successor)]
@@ -243,7 +265,10 @@ class BlitzAgent(ReflexCaptureAgent):
     features['numInvaders'] = len(invaders)
     if len(invaders) > 0:
       dists = [self.getMazeDistance(myPos, a.getPosition()) for a in invaders]
-      features['invaderDistance'] = min(dists)
+      min_dist = min(dists)
+      features['invaderDistance'] = min_dist
+      if min_dist <= 1 and self.getMyScaredTimer(successor) > 0 and self.isAtHome():
+        features['suicide'] = 1
 
     if action == Directions.STOP: features['stop'] = 1
     rev = Directions.REVERSE[gameState.getAgentState(self.index).configuration.direction]
@@ -252,32 +277,74 @@ class BlitzAgent(ReflexCaptureAgent):
     return features
   
   def getWeightsDefense(self, gameState, action):
-    return {'numInvaders': -1000, 'invaderDistance': -10, 'stop': -100, 'reverse': -2}
+    return {'numInvaders': -1000, 'invaderDistance': -10, 'stop': -100, 'reverse': -2, 'suicide': -5000}
   
   def getFeaturesOffense(self, gameState, action):
     features = util.Counter()
     successor = self.getSuccessor(gameState, action)
     features['successorScore'] = self.getScore(successor)
 
+    myPos = self.getMyPos(successor)
+
     # Compute distance to the nearest food
     foodList = self.getFood(successor).asList()
     if len(foodList) > 0: # This should always be True,  but better safe than sorry
-      myPos = successor.getAgentState(self.index).getPosition()
       minDistance = min([self.getMazeDistance(myPos, food) for food in foodList])
       features['distanceToFood'] = minDistance
 
     # Compute distance to partner
-    agentsList = self.agentsOnTeam
-    if self.index == self.agentsOnTeam[0]:
-      otherAgentIndex = self.agentsOnTeam[1]
-    else:
-      otherAgentIndex = self.agentsOnTeam[0]
-    myPos = successor.getAgentState(self.index).getPosition()
-    otherPos = successor.getAgentState(otherAgentIndex).getPosition()
-    distanceToAgent = self.getMazeDistance(myPos, otherPos)
-    features['distanceToOther'] = distanceToAgent
-    
+    if not self.isAtHome(successor):
+      agentsList = self.agentsOnTeam
+      if self.index == self.agentsOnTeam[0]:
+        otherAgentIndex = self.agentsOnTeam[1]
+      else:
+        otherAgentIndex = self.agentsOnTeam[0]
+        otherPos = successor.getAgentState(otherAgentIndex).getPosition()
+        distanceToAgent = self.getMazeDistance(myPos, otherPos)
+        if distanceToAgent == 0: distanceToAgent = 0.5
+        features['distanceToOther'] = 1.0 / distanceToAgent
+
+    # Compute distance to enemy (if detected)
+    opponentPositions = self.getOpponentPositions(successor)
+    if len(opponentPositions) > 0:
+      # if we're in here, we're threatened
+      min_dist = 10000
+      min_index = None
+      
+      for index, pos in opponentPositions:
+        dist = self.getMazeDistance(myPos, pos)
+        if dist < min_dist:
+          min_dist = dist
+          min_index = index
+          if min_dist == 0: min_dist = 0.5
+
+      threshold = 4
+      if min_dist <= threshold:
+        if gameState.getAgentState(min_index).scaredTimer > 1:
+          pass
+          #features['distanceToOpponent'] = -1.0 / min_dist
+          #results in pacman being kited and wasting time
+        else:
+          features['distanceToCapsule'] = self.getDistToClosestCapsule(successor)
+          features['distanceToOpponent'] = 1.0 / min_dist
+          if min_dist <= 1:
+            features['suicide'] = 1
+
     return features
 
   def getWeightsOffense(self, gameState, action):
-    return {'successorScore': 100, 'distanceToFood': -5, 'distanceToOther': -1}
+    return {'successorScore': 100,
+            'distanceToFood': -5,
+            'distanceToOther': -40,
+            'distanceToOpponent': -225,
+            'scaredTimer': -20,
+            'distanceToCapsule': -200,
+            'suicide': -5000}
+
+class BlitzTopAgent(BlitzAgent):
+  def setTarget(self, gameState):
+    pass
+
+class BlitzBottomAgent(BlitzAgent):
+  def setTarget(self, gameState):
+    pass
