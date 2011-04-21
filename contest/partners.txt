@@ -1,0 +1,2 @@
+cs188-an,owenlin@berkeley.edu,Owen Lin
+cs188-gf,s.wan@berkeley.edu,Steven Wan
