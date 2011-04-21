@@ -341,7 +341,7 @@ class BaseAgent(ReflexCaptureAgent):
             'distanceToOther': -40,
             'distanceToOpponent': -225,
             'scaredTimer': -20,
-            'distanceToCapsule': -225,
+            'distanceToCapsule': -230,
             'suicide': -5000}
 
   def getFeaturesStart(self, gameState, action):
