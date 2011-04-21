@@ -267,7 +267,7 @@ class BlitzAgent(ReflexCaptureAgent):
       dists = [self.getMazeDistance(myPos, a.getPosition()) for a in invaders]
       min_dist = min(dists)
       features['invaderDistance'] = min_dist
-      if min_dist <= 1 and self.getMyScaredTimer(successor) > 0 and self.isAtHome():
+      if min_dist <= 1 and self.getMyScaredTimer(successor) > 0 and self.isAtHome(successor):
         features['suicide'] = 1
 
     if action == Directions.STOP: features['stop'] = 1
