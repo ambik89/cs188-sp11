@@ -336,12 +336,12 @@ class BaseAgent(ReflexCaptureAgent):
     return features
 
   def getWeightsOffense(self, gameState, action):
-    return {'successorScore': 100,
+    return {'successorScore': 200,
             'distanceToFood': -5,
             'distanceToOther': -40,
             'distanceToOpponent': -225,
             'scaredTimer': -20,
-            'distanceToCapsule': -200,
+            'distanceToCapsule': -225,
             'suicide': -5000}
 
   def getFeaturesStart(self, gameState, action):
