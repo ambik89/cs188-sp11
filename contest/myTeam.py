@@ -207,7 +207,7 @@ class ReflexCaptureAgent(CaptureAgent):
   def getMyScaredTimer(self, gameState):
     return gameState.getAgentState(self.index).scaredTimer
     
-class BlitzAgent(ReflexCaptureAgent):
+class BaseAgent(ReflexCaptureAgent):
   def chooseAction(self, gameState):
     evalmode = 'offense'
     # For now, just do the same thing as OFFENSE unless if we can detect
@@ -248,11 +248,14 @@ class BlitzAgent(ReflexCaptureAgent):
     elif mode == 'defense':
       features = self.getFeaturesDefense(gameState, action)
       weights = self.getWeightsDefense(gameState, action)
+    elif mode == 'start':
+      features = self.getFeaturesStart(gameState, action)
+      weights = self.getWeightsStart(gameState, action)
     else:
       print "UNDEFINED MODE: ", mode
       return 0
     return features * weights
-
+  
   def getFeaturesDefense(self, gameState, action):
     features = util.Counter()
     successor = self.getSuccessor(gameState, action)
@@ -341,10 +344,117 @@ class BlitzAgent(ReflexCaptureAgent):
             'distanceToCapsule': -200,
             'suicide': -5000}
 
+  def getFeaturesStart(self, gameState, action):
+    features = util.Counter()
+    successor = self.getSuccessor(gameState, action)
+
+    myPos = self.getMyPos(successor)
+
+    features = util.Counter()
+    dist = self.getMazeDistance(myPos, self.target)
+    features['distanceToTarget'] = dist
+    if myPos == self.target:
+      features['atTarget'] = 1
+    return features
+  
+  def getWeightsStart(self, gameState, action):
+    return {'distanceToTarget': -10, 'atTarget': 100}
+
+
+class BlitzAgent(BaseAgent):
+  def chooseAction(self, gameState):
+    # default mode is 'offense'
+    evalmode = 'offense'
+    
+    # Head for the target at the beginning
+    if self.reachedTarget == False:
+      evalmode = 'start'
+
+    # Turn off 'start' mode if we've reached the target once
+    myPos = self.getMyPos(gameState)
+    if myPos == self.target and self.reachedTarget == False:
+      evalmode = 'offense'
+      self.reachedTarget = True
+    opponentPositions = self.getOpponentPositions(gameState)
+    
+    if len(opponentPositions) > 0:
+      # do minimax here?
+      # for now, go defense mode if close enough
+      for index, pos in opponentPositions:
+        if self.getMazeDistance(myPos, pos) < 6 and self.isAtHome(gameState):
+          evalmode = 'defense'
+          break
+    
+    """
+    Picks among the actions with the highest Q(s,a).
+    """
+    actions = gameState.getLegalActions(self.index)
+    
+    # You can profile your evaluation time by uncommenting these lines
+    #start = time.time()
+    values = [self.evaluate(gameState, a, evalmode) for a in actions]
+    #print 'eval time for agent %d: %.4f' % (self.index, time.time() - start)
+
+    maxValue = max(values)
+    bestActions = [a for a, v in zip(actions, values) if v == maxValue]
+
+    return random.choice(bestActions)
+
 class BlitzTopAgent(BlitzAgent):
   def setTarget(self, gameState):
-    pass
+    self.reachedTarget = False
+    x = gameState.getWalls().width / 2
+    y = gameState.getWalls().height / 2
+    if self.red: x -= 1
+    # set self.target
+    self.target = (x,y)
+    yLimit = gameState.getWalls().height
+    possibleTargets = []
 
+    # Create a list of possible targets in the upper half
+    for i in range(yLimit - y):
+      if not gameState.hasWall(x, y):
+        possibleTargets.append((x,y))
+      y += 1
+
+    startPos = self.getMyPos(gameState)
+    min_dist = 1000
+    min_pos = None
+    # find the closest target position
+    for pos in possibleTargets:
+      dist = self.getMazeDistance(startPos, pos)
+      if dist <= min_dist:
+        min_dist = dist
+        min_pos = pos
+        
+    self.target = min_pos
+      
+    
 class BlitzBottomAgent(BlitzAgent):
   def setTarget(self, gameState):
-    pass
+    self.reachedTarget = False
+    x = gameState.getWalls().width / 2
+    y = gameState.getWalls().height / 2
+    if self.red: x -= 1
+    # set self.target
+    self.target = (x,y)
+    yLimit = 0
+    possibleTargets = []
+
+    # Create a list of possible targets in the lower half
+    for i in range(y - yLimit):
+      if not gameState.hasWall(x, y):
+        possibleTargets.append((x,y))
+      y -= 1
+
+    startPos = self.getMyPos(gameState)
+    min_dist = 1000
+    min_pos = None
+    # find the closest target position
+    for pos in possibleTargets:
+      dist = self.getMazeDistance(startPos, pos)
+      if dist <= min_dist:
+        min_dist = dist
+        min_pos = pos
+        
+    self.target = min_pos
