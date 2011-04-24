@@ -46,7 +46,7 @@ def createTeam(firstIndex, secondIndex, isRed,
 ##########
 
 class ChokePoint():
-  def __init__():
+  def __init__(self):
     # store the number of pellets and capsules accessible behind choke
     self.numPellets = None
     self.numCapsules = None
@@ -131,7 +131,22 @@ class ReflexCaptureAgent(CaptureAgent):
     else:
       self.agentsOnTeam = gameState.getBlueTeamIndices()
 
+    # figure out chokepoints
+    # vertical chokepoints
+    
+
     self.setTarget(gameState)
+
+  def getVerticalChokePoints(self, gameState):
+    width = gameState.getWalls().width
+    if self.red:
+      start = 0
+      end = width/2 - 1
+    else:
+      start = width
+      end = width/2
+    #TODO
+      
   
   def chooseAction(self, gameState):
     """
@@ -478,7 +493,7 @@ class BlitzTopAgent(BlitzAgent):
     possibleTargets = []
 
     # Create a list of possible targets in the upper half
-    for i in range(yLimit - y):
+    for i in xrange(yLimit - y):
       if not gameState.hasWall(x, y):
         possibleTargets.append((x,y))
       y += 1
@@ -508,7 +523,7 @@ class BlitzBottomAgent(BlitzAgent):
     possibleTargets = []
 
     # Create a list of possible targets in the lower half
-    for i in range(y - yLimit):
+    for i in xrange(y - yLimit):
       if not gameState.hasWall(x, y):
         possibleTargets.append((x,y))
       y -= 1
