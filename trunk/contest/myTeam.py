@@ -39,13 +39,14 @@ def createTeam(firstIndex, secondIndex, isRed,
   behavior is what you want for the nightly contest.
   """
 
-  # The following line is an example only; feel free to change it.
   agent1 = eval(first)(firstIndex)
   agent2 = eval(second)(secondIndex)
   agent1.setOtherAgent(agent2)
   agent2.setOtherAgent(agent1)
   agent1.setThreatened(False)
   agent2.setThreatened(False)
+  agent1.setDepth(1)
+  agent2.setDepth(1)
   return [agent1, agent2]
 
 ##########
@@ -205,6 +206,9 @@ class ReflexCaptureAgent(CaptureAgent):
   def setThreatened(self, val):
     self.threatened = val
 
+  def setDepth(self, val):
+    self.depth = val
+
   def getMyPos(self, gameState):
     return gameState.getAgentState(self.index).getPosition()
 
@@ -251,7 +255,6 @@ class ReflexCaptureAgent(CaptureAgent):
     distToEnemy = None
     opponentPositions = self.getOpponentPositions(gameState)
     if len(opponentPositions) > 0:
-      # if we're in here, we're threatened by a visible opponent
       min_dist = 10000
       min_index = None
       myPos = self.getMyPos(gameState)
@@ -280,7 +283,16 @@ class ReflexCaptureAgent(CaptureAgent):
 
   def getMyScaredTimer(self, gameState):
     return gameState.getAgentState(self.index).scaredTimer
-  
+
+  def canSee(self, gameState, index):
+    opponentPositions = self.getOpponentPositions(gameState)
+    for idx, pos in opponentPositions:
+      if index == idx:
+        return True
+    if index in self.agentsOnTeam:
+      return True
+    return False
+    
 
 class BaseAgent(ReflexCaptureAgent):
   def chooseAction(self, gameState):
@@ -327,6 +339,9 @@ class BaseAgent(ReflexCaptureAgent):
     elif mode == 'start':
       features = self.getFeaturesStart(gameState, action)
       weights = self.getWeightsStart(gameState, action)
+    elif mode == 'minimax':
+      features = self.getFeaturesMinimax(gameState, action)
+      weights = self.getFeaturesMinimax(gameState, action)
     else:
       print "UNDEFINED MODE: ", mode
       return 0
@@ -440,39 +455,105 @@ class BaseAgent(ReflexCaptureAgent):
   def getWeightsStart(self, gameState, action):
     return {'distanceToTarget': -10, 'atTarget': 100}
 
-  def maxValue(self, gameState, depth):
-    if gameState.isWin() or gameState.isLose() or depth == 0:
-      return self.evaluationFunction(gameState)
+  def getFeaturesMinimax(self, gameState, action):
+    features = util.Counter()
+    features['successorScore'] = self.getScore(gameState)
+    return features
     
-    numAgents = gameState.getNumAgents()
+  def getWeightsMinimax(self, gameState, action):
+    return {'successorScore': 1}
+  
+  """
+  Minimax move with alpha-beta pruning
+  """
+  def getMinimaxAction(self, gameState):
+    """
+      Returns the minimax action using self.depth and self.evaluationFunction
+    """
+    "*** YOUR CODE HERE ***"
+    maxScore = -10000
+    maxAction = None
+    actions = gameState.getLegalActions(self.index)
 
-    v = -1000
-    actions = gameState.getLegalActions(0)
+    nextIndex = self.index+1
+    while(not self.canSee(gameState, nextIndex)):
+      nextIndex += 1
+      nextIndex = nextIndex % gameState.getNumAgents()  
+    if nextIndex in self.getOpponents(gameState): doMin = True
+    else: doMin = False
+    
     for action in actions:
-      successor = gameState.generateSuccessor(0, action)
-      v = max(v, self.minValue(successor, depth, 1))
-    return v
+      successor = gameState.generateSuccessor(self.index, action)
+      # make this more efficient somehow
+      if doMin:
+        minimizerValue = self.minValue(successor, self.depth-1, nextIndex, -100000, 100000, self.index)
+      else:
+        minimizerValue = self.maxValue(successor, self.depth-1, nextIndex, -100000, 100000, self.index)
+      if minimizerValue > maxScore:
+        maxScore = minimizerValue
+        maxAction = action
+      #print "v's: ", self.evaluationFunction(successor)
+      #if v == self.evaluationFunction(successor):
+    #print "maxValue of entire tree:", maxScore #debug
+    return maxAction
 
-  def minValue(self, gameState, depth, agentIndex):
-    if gameState.isWin() or gameState.isLose():
-      return self.evaluationFunction(gameState)
+  def maxValue(self, gameState, depth, agentIndex, a, b, origIndex):
+    if gameState.isOver():
+      return self.evaluate(gameState, Directions.STOP, 'minimax')
+    if depth == 0 and agentIndex == origIndex:
+      # NOTE: the 100 comes from the weight of 'stop' in offense
+      return self.evaluate(gameState, Directions.STOP, 'offense') + 100
 
-    numAgents = gameState.getNumAgents()
-    #if depth == 1 and agentIndex == numAgents-1:
-    #  return self.evaluationFunction(gameState)
-
-    v = 1000
+    if agentIndex == origIndex:
+      depth -= 1
+    
+    v = -10000
+    if agentIndex > 4 or agentIndex in self.getOpponents(gameState):
+      print "agentIndex greater than 4??: ", agentIndex
     actions = gameState.getLegalActions(agentIndex)
+    
+    nextIndex = agentIndex+1
+    while(not self.canSee(gameState, nextIndex)):
+      nextIndex += 1
+      nextIndex = nextIndex % gameState.getNumAgents()  
+    if nextIndex in self.getOpponents(gameState): doMin = True
+    else: doMin = False
+      
     for action in actions:
       successor = gameState.generateSuccessor(agentIndex, action)
-      if agentIndex < numAgents-1:
-        v = min(v, self.minValue(successor, depth, agentIndex+1))
+      if doMin:
+        v = max(v, self.minValue(successor, depth, nextIndex, a, b, origIndex))
       else:
-        v = min(v, self.maxValue(successor, depth-1))
+        v = max(v, self.maxValue(successor, depth, nextIndex, a, b, origIndex))
+      if v > b:
+        return v
+        a = max(a, v)
+    return v
+
+  def minValue(self, gameState, depth, agentIndex, a, b, origIndex):
+    if gameState.isOver():
+      return self.evaluate(gameState, Directions.STOP, 'minimax')
+
+    numAgents = gameState.getNumAgents()
+    v = 10000
+    actions = gameState.getLegalActions(agentIndex)
+    # might be able to speed it up if we can assume that the action the
+    # minimizer will take is 'defense', and rushing toward our pacman
+    for action in actions:
+      successor = gameState.generateSuccessor(agentIndex, action)
+      nextIndex = agentIndex+1
+      nextIndex = nextIndex % gameState.getNumAgents()
+      v = min(v, self.maxValue(successor, depth, nextIndex, a, b, origIndex))
+      if v <= a:
+        return v
+      b = min(b, v)
     return v
 
 class BlitzAgent(BaseAgent):
   def chooseAction(self, gameState):
+    # You can profile your evaluation time by uncommenting these lines
+    start = time.time()
+    
     # default mode is 'offense'
     evalmode = 'offense'
     
@@ -488,6 +569,8 @@ class BlitzAgent(BaseAgent):
     opponentPositions = self.getOpponentPositions(gameState)
     
     if len(opponentPositions) > 0:
+      action = self.getMinimaxAction(gameState)
+      print 'eval time for agent %d: %.4f' % (self.index, time.time() - start)
       # do minimax here?
       # for now, go defense mode if close enough
       for index, pos in opponentPositions:
@@ -500,10 +583,8 @@ class BlitzAgent(BaseAgent):
     """
     actions = gameState.getLegalActions(self.index)
     
-    # You can profile your evaluation time by uncommenting these lines
-    #start = time.time()
     values = [self.evaluate(gameState, a, evalmode) for a in actions]
-    #print 'eval time for agent %d: %.4f' % (self.index, time.time() - start)
+    print 'eval time for agent %d: %.4f' % (self.index, time.time() - start)
 
     maxValue = max(values)
     bestActions = [a for a, v in zip(actions, values) if v == maxValue]
@@ -512,6 +593,7 @@ class BlitzAgent(BaseAgent):
 
 class BlitzTopAgent(BlitzAgent):
   def setTarget(self, gameState):
+    
     self.reachedTarget = False
     x = gameState.getWalls().width / 2
     y = gameState.getWalls().height / 2
