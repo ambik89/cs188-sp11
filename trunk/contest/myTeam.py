@@ -501,8 +501,16 @@ class BaseAgent(ReflexCaptureAgent):
     if gameState.isOver():
       return self.evaluate(gameState, Directions.STOP, 'minimax')
     if depth == 0 and agentIndex == origIndex:
+      evalmode = 'offense'
+      myPos = self.getMyPos(gameState)
+      opponentPositions = self.getOpponentPositions(gameState)
+      if len(opponentPositions) > 0:
+        for index, pos in opponentPositions:
+          if self.getMazeDistance(myPos, pos) < 6 and self.isAtHome(gameState):
+            evalmode = 'defense'
+            break
       # NOTE: the 100 comes from the weight of 'stop' in offense
-      return self.evaluate(gameState, Directions.STOP, 'offense') + 100
+      return self.evaluate(gameState, Directions.STOP, evalmode) + 100
 
     if agentIndex == origIndex:
       depth -= 1
