@@ -391,7 +391,7 @@ class BaseAgent(ReflexCaptureAgent):
     # Just grab the capsule if it's really close
     distToCapsule = self.getDistToClosestCapsule(gameState, successor)
     if distToCapsule == 0:
-      distToCapsule = 0.5
+      distToCapsule = 0.1
     if distToCapsule != None:
       features['distanceToCapsule'] = 1.0 / distToCapsule
 
@@ -409,7 +409,7 @@ class BaseAgent(ReflexCaptureAgent):
       if distToEnemy <= 4:
         self.threatened = True
         if gameState.getAgentState(enemyIndex).scaredTimer > 1:
-          pass
+          features['distanceToOpponent'] = 0
           #features['distanceToOpponent'] = -1.0 / distToEnemy
           #results in pacman being kited and wasting time
         else:
@@ -433,7 +433,7 @@ class BaseAgent(ReflexCaptureAgent):
             'distanceToFood': -5,
             'distanceToOther': -40,
             'distanceToOpponent': -225,
-            'distanceToCapsule': 30,
+            'distanceToCapsule': 45,
             'distanceToCapsuleThreatened': -230,
             'stop': -100,
             'atHomeThreatened': 400,
