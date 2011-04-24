@@ -13,6 +13,11 @@ from game import Directions
 import game
 from util import nearestPoint
 
+'''
+NOTES:
+- capsulelists get updated between gamestate and successor
+'''
+
 #################
 # Team creation #
 #################
@@ -39,19 +44,13 @@ def createTeam(firstIndex, secondIndex, isRed,
   agent2 = eval(second)(secondIndex)
   agent1.setOtherAgent(agent2)
   agent2.setOtherAgent(agent1)
+  agent1.setThreatened(False)
+  agent2.setThreatened(False)
   return [agent1, agent2]
 
 ##########
 # Agents #
 ##########
-
-class ChokePoint():
-  def __init__(self):
-    # store the number of pellets and capsules accessible behind choke
-    self.numPellets = None
-    self.numCapsules = None
-    # target is the position of chokepoint (to defend, if necesssary)
-    self.target = None
 
 class DummyAgent(CaptureAgent):
   """
@@ -203,6 +202,9 @@ class ReflexCaptureAgent(CaptureAgent):
   def setOtherAgent(self, other):
     self.otherAgent = other
 
+  def setThreatened(self, val):
+    self.threatened = val
+
   def getMyPos(self, gameState):
     return gameState.getAgentState(self.index).getPosition()
 
@@ -243,7 +245,7 @@ class ReflexCaptureAgent(CaptureAgent):
       # somehow none of the opponent's food is left on the grid
       return None
 
-  # Compute the index of, and distance to, enemy (if detected)
+  # Compute the index of, and distance to, closest enemy (if detected)
   def getIDDistToSeenEnemy(self, gameState):
     enemyIndex = None
     distToEnemy = None
@@ -264,21 +266,25 @@ class ReflexCaptureAgent(CaptureAgent):
       
     return (enemyIndex, distToEnemy)
 
-  def getDistToClosestCapsule(self, gameState):
-    myPos = self.getMyPos(gameState)
-    capsuleList = self.getCapsules(gameState)
-    minDistance = 0
-    if len(capsuleList) > 0:
+  def getDistToClosestCapsule(self, gameState, successor):
+    myPos = self.getMyPos(successor)
+    oldCapsuleList = self.getCapsules(gameState)
+    capsuleList = self.getCapsules(successor)
+    
+    minDistance = None
+    if len(capsuleList) < len(oldCapsuleList):
+      minDistance = 0
+    elif len(capsuleList) > 0:
       minDistance = min([self.getMazeDistance(myPos, capsule) for capsule in capsuleList])
     return minDistance
 
   def getMyScaredTimer(self, gameState):
     return gameState.getAgentState(self.index).scaredTimer
-
   
 
 class BaseAgent(ReflexCaptureAgent):
   def chooseAction(self, gameState):
+    
     evalmode = 'offense'
     # For now, just do the same thing as OFFENSE unless if we can detect
     # the enemy. Later we probably want to infer the position of the enemy...
@@ -337,10 +343,11 @@ class BaseAgent(ReflexCaptureAgent):
     invaders = [a for a in enemies if a.isPacman and a.getPosition() != None]
     features['numInvaders'] = len(invaders)
     if len(invaders) > 0:
-      dists = [self.getMazeDistance(myPos, a.getPosition()) for a in invaders]
-      min_dist = min(dists)
+      min_idx, min_dist = self.getIDDistToSeenEnemy(successor)
       features['invaderDistance'] = min_dist
       if min_dist <= 1 and self.getMyScaredTimer(successor) > 0 and self.isAtHome(successor):
+        features['suicide'] = 1
+      if not self.isAtHome(successor) and min_dist <= 1:
         features['suicide'] = 1
 
     if action == Directions.STOP: features['stop'] = 1
@@ -359,8 +366,19 @@ class BaseAgent(ReflexCaptureAgent):
 
     myPos = self.getMyPos(successor)
 
+    # Stopping is unfavorable
+    if action == Directions.STOP:
+      features['stop'] = 1
+
     # Compute distance to the nearest food
     features['distanceToFood'] = self.getDistToClosestFood(successor)
+
+    # Just grab the capsule if it's really close
+    distToCapsule = self.getDistToClosestCapsule(gameState, successor)
+    if distToCapsule == 0:
+      distToCapsule = 0.5
+    if distToCapsule != None:
+      features['distanceToCapsule'] = 1.0 / distToCapsule
 
     # Compute distance to partner
     if not self.isAtHome(successor):
@@ -371,19 +389,28 @@ class BaseAgent(ReflexCaptureAgent):
 
     # Compute distance to enemy (if detected)
     enemyIndex, distToEnemy = self.getIDDistToSeenEnemy(successor)
+    distToCapsule = self.getDistToClosestCapsule(gameState, successor)
     if distToEnemy != None:
-      threshold = 4
-      if distToEnemy <= threshold:
+      if distToEnemy <= 4:
+        self.threatened = True
         if gameState.getAgentState(enemyIndex).scaredTimer > 1:
           pass
           #features['distanceToOpponent'] = -1.0 / distToEnemy
           #results in pacman being kited and wasting time
         else:
-          features['distanceToCapsule'] = self.getDistToClosestCapsule(successor)
+          if distToCapsule != None:
+            features['distanceToCapsuleThreatened'] = distToCapsule
           features['distanceToOpponent'] = 1.0 / distToEnemy
+          if self.isAtHome(successor) and self.getMyScaredTimer(successor) <= 1:
+            features['atHomeThreatened'] = 1
           if distToEnemy <= 1:
             features['suicide'] = 1
+      
+    if distToEnemy == None or distToEnemy > 4:
+      self.threatened = False
 
+    if self.otherAgent.threatened and distToCapsule != None and distToCapsule <= 5:
+      features['distanceToCapsuleThreatened'] = distToCapsule
     return features
 
   def getWeightsOffense(self, gameState, action):
@@ -391,8 +418,10 @@ class BaseAgent(ReflexCaptureAgent):
             'distanceToFood': -5,
             'distanceToOther': -40,
             'distanceToOpponent': -225,
-            'scaredTimer': -20,
-            'distanceToCapsule': -230,
+            'distanceToCapsule': 30,
+            'distanceToCapsuleThreatened': -230,
+            'stop': -100,
+            'atHomeThreatened': 400,
             'suicide': -5000}
 
   def getFeaturesStart(self, gameState, action):
