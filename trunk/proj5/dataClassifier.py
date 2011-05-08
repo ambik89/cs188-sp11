@@ -86,7 +86,43 @@ def enhancedFeatureExtractorDigit(datum):
      features['top'] = 1
   else:
      features['top'] = 0
+     
+  print datum   
+  for y in range(DIGIT_DATUM_HEIGHT):
+    start = 0
+    end = 0
+    for x in range(DIGIT_DATUM_WIDTH):
+      if datum.getPixel(x, y) > 0:
+          if start == 0:
+              start = x
+          else:
+              end = x
+    
+    width = abs(start - end)
+    if end == 0 and start != 0:
+        width = 1
+    features['width' + str(y)] = width
+    features['start' + str(y)] = start
+    features['end' + str(y)] = end
+    print end
+        
+  sum = 0.0      
+  for y in range(DIGIT_DATUM_HEIGHT):
+    leftPix = 0
+    rightPix = 0
+    for x in range(DIGIT_DATUM_WIDTH/2):
+      if datum.getPixel(x, y) > 0:
+          leftPix += 1
+    for x in range(DIGIT_DATUM_WIDTH/2, DIGIT_DATUM_WIDTH):
+      if datum.getPixel(x, y) > 0:
+          rightPix += 1
+          
+    diff = abs(leftPix - rightPix)
+    sum += diff
+    features['symmetrical' + str(y)] = diff
+  #features['symm avg'] = sum / DIGIT_DATUM_HEIGHT   
 
+  """
   allWidths = []
   for y in range(DIGIT_DATUM_HEIGHT):
     counting = False
@@ -123,7 +159,7 @@ def enhancedFeatureExtractorDigit(datum):
   else:
     features['largestWidth'] = 0
   
-  
+  """
   return features
 
 
