@@ -52,6 +52,7 @@ class NaiveBayesClassifier(classificationMethod.ClassificationMethod):
 
   def setLabelCountAndPriorProb(self, trainingLabels):
     self.labelCount = util.Counter()
+
     for i in range(len(trainingLabels)):
       self.labelCount[trainingLabels[i]] += 1
 
@@ -75,8 +76,10 @@ class NaiveBayesClassifier(classificationMethod.ClassificationMethod):
 
     "*** YOUR CODE HERE ***"
     self.setLabelCountAndPriorProb(trainingLabels)
-    
-    c = [util.Counter() for i in self.legalLabels]
+
+    c = {}
+    for label in self.legalLabels:
+      c[label] = util.Counter()
     
     for i in range(len(trainingData)):
         for feature in self.features:

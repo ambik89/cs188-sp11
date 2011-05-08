@@ -55,8 +55,7 @@ class MiraClassifier:
     representing a vector of values.
     """
     "*** YOUR CODE HERE ***"
-    
-    
+        
     bestScore = 0
     bestWeights = None
     for c in Cgrid:
@@ -118,6 +117,9 @@ class MiraClassifier:
     featuresOdds = []
 
     "*** YOUR CODE HERE ***"
+    
+    featuresWeights = self.weights[label].sortedKeys()
+    featuresWeights = featuresWeights[0:100]
 
     return featuresOdds
 

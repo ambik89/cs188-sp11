@@ -64,7 +64,7 @@ def enhancedFeatureExtractorDigit(datum):
   for this datum (datum is of type samples.Datum).
   
   ## DESCRIBE YOUR ENHANCED FEATURES HERE...
-  
+  1) 'top' = 
   ##
   """
   features =  basicFeatureExtractorDigit(datum)
@@ -85,7 +85,44 @@ def enhancedFeatureExtractorDigit(datum):
   if (topPixels - bottomPixels) > 0:
      features['top'] = 1
   else:
-     features['top'] = 0  
+     features['top'] = 0
+
+  allWidths = []
+  for y in range(DIGIT_DATUM_HEIGHT):
+    counting = False
+    countedAlready = False
+    width = 0
+    gap = 0
+    for x in range(DIGIT_DATUM_WIDTH):
+      if countedAlready:
+        if datum.getPixel(x, y) > 0:
+          width += gap
+          gap = 0
+          counting = True
+        else:
+          gap += 1
+      
+      elif counting:
+        if datum.getPixel(x, y) > 0:
+          width += 1
+        else:
+          gap += 1
+          counting = False
+          countedAlready = True
+          
+      elif not counting and not countedAlready:
+        if datum.getPixel(x, y) > 0:
+          counting = True
+          width = 1
+
+    allWidths.append(width)
+
+  maxWidth = max(allWidths)
+  if maxWidth > 12:
+    features['largestWidth'] = 1
+  else:
+    features['largestWidth'] = 0
+  
   
   return features
 
