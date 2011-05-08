@@ -22,8 +22,9 @@ class NaiveBayesClassifier(classificationMethod.ClassificationMethod):
     self.type = "naivebayes"
     self.k = 1 # this is the smoothing parameter, ** use it in your train method **
     self.automaticTuning = False # Look at this flag to decide whether to choose k automatically ** use this in your train method **
-   
-    self.priorProb = util.Counter()
+
+    self.labelCount = None
+    self.priorProb = None
     self.condProb = []
     
   def setSmoothing(self, k):
@@ -48,6 +49,15 @@ class NaiveBayesClassifier(classificationMethod.ClassificationMethod):
         kgrid = [self.k]
         
     self.trainAndTune(trainingData, trainingLabels, validationData, validationLabels, kgrid)
+
+  def setLabelCountAndPriorProb(self, trainingLabels):
+    self.labelCount = util.Counter()
+    for i in range(len(trainingLabels)):
+      self.labelCount[trainingLabels[i]] += 1
+
+    self.priorProb = util.Counter(self.labelCount)
+    self.priorProb.normalize()
+    
       
   def trainAndTune(self, trainingData, trainingLabels, validationData, validationLabels, kgrid):
     """
@@ -64,21 +74,15 @@ class NaiveBayesClassifier(classificationMethod.ClassificationMethod):
     """
 
     "*** YOUR CODE HERE ***"
+    self.setLabelCountAndPriorProb(trainingLabels)
     
-    for i in range(len(trainingLabels)):
-        self.priorProb[trainingLabels[i]] += 1
-    
-        
     c = [util.Counter() for i in self.legalLabels]
     
     for i in range(len(trainingData)):
         for feature in self.features:
             if trainingData[i][feature] == 1:
                 c[trainingLabels[i]][feature] += 1
-        
-    
-    
-    
+                
     bestScore = 0
     bestCondProb = None
     for k in kgrid:
@@ -86,10 +90,11 @@ class NaiveBayesClassifier(classificationMethod.ClassificationMethod):
         for label in self.legalLabels:
             ctr = util.Counter()
             for feature in self.features:
-                ctr[feature] = (c[label][feature] + k) / (self.priorProb[label] + k)
+                ctr[feature] = 1.0 * (c[label][feature] + k) / (self.labelCount[label] + k)
+            ctr.normalize()
             lst.append(ctr)
         self.condProb = lst
-        
+
         guesses = self.classify(validationData)
         score = 0
         for i in range(len(guesses)):
@@ -97,11 +102,10 @@ class NaiveBayesClassifier(classificationMethod.ClassificationMethod):
                 score += 1
         
         if score > bestScore:
-            bestSCore = score
-            bestCondProb = self.condProb
+            bestScore = score
+            bestCondProb = lst
     
     self.condProb = bestCondProb
-    
         
   def classify(self, testData):
     """
@@ -128,15 +132,17 @@ class NaiveBayesClassifier(classificationMethod.ClassificationMethod):
     """
     logJoint = util.Counter()
     
-    "*** YOUR CODE HERE ***"
-    
+    "*** YOUR CODE HERE ***"    
     for label in self.legalLabels:
-        sum = math.log(self.priorProb[label])
-        for feature in self.features:
-            if self.condProb[label][feature] != 0:
-                sum += math.log(self.condProb[label][feature])
-        logJoint[label] = sum
-    
+      sum = math.log(self.priorProb[label])
+      for feature, value in datum.items():
+        if value == 1:
+          i = math.log(self.condProb[label][feature])
+        else:
+          i = math.log(1 - self.condProb[label][feature])
+        sum += i
+      logJoint[label] = sum
+
     return logJoint
   
   def findHighOddsFeatures(self, label1, label2):
