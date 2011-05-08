@@ -164,7 +164,6 @@ class NaiveBayesClassifier(classificationMethod.ClassificationMethod):
         
     featuresOdds = ctr.sortedKeys()
     featuresOdds = featuresOdds[0:100]
-    print len(featuresOdds)
     
     return featuresOdds
     
