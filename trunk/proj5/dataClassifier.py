@@ -56,20 +56,7 @@ def basicFeatureExtractorFace(datum):
         features[(x,y)] = 0
   return features
 
-def enhancedFeatureExtractorDigit(datum):
-  """
-  Your feature extraction playground.
-  
-  You should return a util.Counter() of features
-  for this datum (datum is of type samples.Datum).
-  
-  ## DESCRIBE YOUR ENHANCED FEATURES HERE...
-  1) 'top' = 
-  ##
-  """
-  features =  basicFeatureExtractorDigit(datum)
-
-  "*** YOUR CODE HERE ***"
+def addTopHeavyFeature(datum, features):
   topPixels = 0
   for x in range(DIGIT_DATUM_WIDTH):
       for y in range(DIGIT_DATUM_HEIGHT/2):
@@ -86,8 +73,54 @@ def enhancedFeatureExtractorDigit(datum):
      features['top'] = 1
   else:
      features['top'] = 0
-     
-  print datum   
+  weighFeature(features, 'top', 4)
+
+def addSymmetricalFeature(datum, features):
+    differences = []
+    for y in range(DIGIT_DATUM_HEIGHT):
+      leftPix = 0
+      rightPix = 0
+      for x in range(DIGIT_DATUM_WIDTH/2):
+        if datum.getPixel(x, y) > 0:
+          leftPix += 1
+      for x in range(DIGIT_DATUM_WIDTH/2, DIGIT_DATUM_WIDTH):
+        if datum.getPixel(x, y) > 0:
+          rightPix += 1
+          
+      differences.append(abs(leftPix - rightPix))
+      
+    avg = float(sum(differences)) / len(differences)
+    if avg > 2:
+      features['symmetrical'] = 1
+    else:
+      features['symmetrical'] = 0
+
+def weighFeature(features, name, weight):
+  for i in xrange(weight):
+    features[str(i) + name] = features[name]
+
+def enhancedFeatureExtractorDigit(datum):
+  """
+  Your feature extraction playground.
+  
+  You should return a util.Counter() of features
+  for this datum (datum is of type samples.Datum).
+  
+  ## DESCRIBE YOUR ENHANCED FEATURES HERE...
+  1) 'top': We determine whether a digit has more 'ON' pixels
+  in the top half of the picture than the bottom half.
+  2) 'symmetrical': We determine the difference, across a given
+  horizontal line in the picture, between the left side and the
+  right side. If it's close to 0, we say that it is more symmetrical.
+  3) 'loop': We determine whether there is a loop or not.
+  ##
+  """
+  features =  basicFeatureExtractorDigit(datum)
+
+  "*** YOUR CODE HERE ***"
+  #print datum
+  addTopHeavyFeature(datum, features)
+  #xaddSymmetricalFeature(datum, features)
   
   masterLoop = False
   loopStart = False
@@ -121,15 +154,18 @@ def enhancedFeatureExtractorDigit(datum):
         gap = 0
     features['width' + str(y)] = width
     features['gap' + str(y)] = gap
+    weighFeature(features, 'gap'+str(y), 2)
+      
     features['start' + str(y)] = start
+    #weighFeature(features, 'start' + str(y), 4)
     features['end' + str(y)] = end
+    #weighFeature(features, 'end' + str(y), 4)
     
-    """
     if prevGap == 0 and gap != 0 and abs(prevStart - start) <= 2 and abs(prevEnd - end) <= 2:
         loopStart = True
         loopStarted += 1
         loopStartX = y
-        print 'loopStart: ', y
+        #print 'loopStart: ', y
     
     if prevGap != 0:
         if gap == 0 and abs(prevStart - start) <= 2:
@@ -138,31 +174,19 @@ def enhancedFeatureExtractorDigit(datum):
             loopEndX = y
             if loopEndX > loopStartX + 1 and loopStarted == loopEnded:
                 masterLoop = True
-            print 'loopEnd:', y
+            #print 'loopEnd:', y
             
     prevGap = gap
     prevStart = start
     prevEnd = end
     
   if masterLoop:
-      print 'LOOPYLOOP'
+      #print 'LOOPYLOOP'
       features['loop'] = 1
   else:
       features['loop'] = 0
-  """
-            
-  for y in range(DIGIT_DATUM_HEIGHT):
-    leftPix = 0
-    rightPix = 0
-    for x in range(DIGIT_DATUM_WIDTH/2):
-      if datum.getPixel(x, y) > 0:
-          leftPix += 1
-    for x in range(DIGIT_DATUM_WIDTH/2, DIGIT_DATUM_WIDTH):
-      if datum.getPixel(x, y) > 0:
-          rightPix += 1
-          
-    diff = abs(leftPix - rightPix)
-    features['symmetrical' + str(y)] = diff   
+
+  weighFeature(features, 'loop', 4)
 
   return features
 
