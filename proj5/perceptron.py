@@ -53,12 +53,10 @@ class PerceptronClassifier:
           scores = util.Counter()
           for label in self.legalLabels:
               scores[label] = self.weights[label] * trainingData[i]
-              
-              
           
           bestLabel = scores.argMax()
           if bestLabel != trainingLabels[i]:
-              self.weights[label] = self.weights[label] + trainingData[i]
+              self.weights[trainingLabels[i]] = self.weights[trainingLabels[i]] + trainingData[i]
               self.weights[bestLabel] = self.weights[bestLabel] - trainingData[i]
     
   def classify(self, data ):
