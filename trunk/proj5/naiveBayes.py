@@ -22,6 +22,9 @@ class NaiveBayesClassifier(classificationMethod.ClassificationMethod):
     self.type = "naivebayes"
     self.k = 1 # this is the smoothing parameter, ** use it in your train method **
     self.automaticTuning = False # Look at this flag to decide whether to choose k automatically ** use this in your train method **
+   
+    self.priorProb = util.Counter()
+    self.condProb = [util.Counter() for i in self.legalLabels]
     
   def setSmoothing(self, k):
     """
@@ -61,6 +64,37 @@ class NaiveBayesClassifier(classificationMethod.ClassificationMethod):
     """
 
     "*** YOUR CODE HERE ***"
+    
+    for i in range(len(trainingLabels)):
+        self.priorProb[trainingLabels[i]] += 1
+    
+        
+    c = [util.Counter() for i in self.legalLabels]
+    
+    for i in range(len(trainingData)):
+        for feature in self.features:
+            if trainingData[i][feature] == 1:
+                c[trainingLabels[i]][feature] += 1
+        
+    
+    condProbList = []
+    
+    for k in kgrid:
+        lst = []
+        for label in self.legalLabels:
+            ctr = util.Counter()
+            for feature in self.features:
+                ctr[feature] = (c[label][feature] + k) / (self.priorProb[label] + k)
+            lst.append(ctr)
+        condProbList.append(lst)
+        
+    
+    
+   # print trainingData
+    #print trainingLabels
+    
+    
+    
     util.raiseNotDefined()
         
   def classify(self, testData):
