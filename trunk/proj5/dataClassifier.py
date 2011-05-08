@@ -70,6 +70,22 @@ def enhancedFeatureExtractorDigit(datum):
   features =  basicFeatureExtractorDigit(datum)
 
   "*** YOUR CODE HERE ***"
+  topPixels = 0
+  for x in range(DIGIT_DATUM_WIDTH):
+      for y in range(DIGIT_DATUM_HEIGHT/2):
+          if datum.getPixel(x, y) > 0:
+              topPixels += 1
+              
+  bottomPixels = 0
+  for x in range(DIGIT_DATUM_WIDTH):
+      for y in range(DIGIT_DATUM_HEIGHT/2, DIGIT_DATUM_HEIGHT):
+          if datum.getPixel(x, y) > 0:
+              bottomPixels += 1
+  
+  if (topPixels - bottomPixels) > 0:
+     features['top'] = 1
+  else:
+     features['top'] = 0  
   
   return features
 
