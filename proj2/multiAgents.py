@@ -274,7 +274,7 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
     for action in actions:
       successor = gameState.generateSuccessor(0, action)
       # make this more efficient somehow
-      minimizerValue = self.minValue(successor, self.depth, 1, -10000, 10000)
+      minimizervalue = self.minValue(successor, self.depth, 1, -10000, 10000)
       if minimizerValue > maxScore:
         maxScore = minimizerValue
         maxAction = action
