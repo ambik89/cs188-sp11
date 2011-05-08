@@ -88,25 +88,69 @@ def enhancedFeatureExtractorDigit(datum):
      features['top'] = 0
      
   print datum   
+  
+  masterLoop = False
+  loopStart = False
+  loopStarted = 0
+  loopStartX = 0
+  loopEnd = False
+  loopEnded = 0
+  loopEndX = 0
+  prevGap = 0
+  prevStart = 0
+  prevEnd = 0
   for y in range(DIGIT_DATUM_HEIGHT):
     start = 0
     end = 0
+    total = 0
     for x in range(DIGIT_DATUM_WIDTH):
       if datum.getPixel(x, y) > 0:
+          total += 1
           if start == 0:
               start = x
           else:
               end = x
     
-    width = abs(start - end)
     if end == 0 and start != 0:
-        width = 1
+        end = start + 1          
+    width = abs(start - end)
+    if width > 1:
+        width += 1
+    gap = width - total
+    if gap <= 0:
+        gap = 0
     features['width' + str(y)] = width
+    features['gap' + str(y)] = gap
     features['start' + str(y)] = start
     features['end' + str(y)] = end
-    print end
-        
-  sum = 0.0      
+    
+    """
+    if prevGap == 0 and gap != 0 and abs(prevStart - start) <= 2 and abs(prevEnd - end) <= 2:
+        loopStart = True
+        loopStarted += 1
+        loopStartX = y
+        print 'loopStart: ', y
+    
+    if prevGap != 0:
+        if gap == 0 and abs(prevStart - start) <= 2:
+            loopEnd = True
+            loopEnded += 1
+            loopEndX = y
+            if loopEndX > loopStartX + 1 and loopStarted == loopEnded:
+                masterLoop = True
+            print 'loopEnd:', y
+            
+    prevGap = gap
+    prevStart = start
+    prevEnd = end
+    
+  if masterLoop:
+      print 'LOOPYLOOP'
+      features['loop'] = 1
+  else:
+      features['loop'] = 0
+  """
+            
   for y in range(DIGIT_DATUM_HEIGHT):
     leftPix = 0
     rightPix = 0
@@ -118,48 +162,8 @@ def enhancedFeatureExtractorDigit(datum):
           rightPix += 1
           
     diff = abs(leftPix - rightPix)
-    sum += diff
-    features['symmetrical' + str(y)] = diff
-  #features['symm avg'] = sum / DIGIT_DATUM_HEIGHT   
+    features['symmetrical' + str(y)] = diff   
 
-  """
-  allWidths = []
-  for y in range(DIGIT_DATUM_HEIGHT):
-    counting = False
-    countedAlready = False
-    width = 0
-    gap = 0
-    for x in range(DIGIT_DATUM_WIDTH):
-      if countedAlready:
-        if datum.getPixel(x, y) > 0:
-          width += gap
-          gap = 0
-          counting = True
-        else:
-          gap += 1
-      
-      elif counting:
-        if datum.getPixel(x, y) > 0:
-          width += 1
-        else:
-          gap += 1
-          counting = False
-          countedAlready = True
-          
-      elif not counting and not countedAlready:
-        if datum.getPixel(x, y) > 0:
-          counting = True
-          width = 1
-
-    allWidths.append(width)
-
-  maxWidth = max(allWidths)
-  if maxWidth > 12:
-    features['largestWidth'] = 1
-  else:
-    features['largestWidth'] = 0
-  
-  """
   return features
 
 
