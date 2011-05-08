@@ -365,7 +365,7 @@ class BaseAgent(ReflexCaptureAgent):
       if not self.isAtHome(successor) and min_dist <= 1:
         features['suicide'] = 1
 
-    if action == Directions.STOP: features['stop'] = 1
+    if action == Directions.STOP: features['stop'] = 0
     rev = Directions.REVERSE[gameState.getAgentState(self.index).configuration.direction]
     if action == rev: features['reverse'] = 1
 
@@ -577,8 +577,8 @@ class BlitzAgent(BaseAgent):
     opponentPositions = self.getOpponentPositions(gameState)
     
     if len(opponentPositions) > 0:
-      action = self.getMinimaxAction(gameState)
-      print 'eval time for agent %d: %.4f' % (self.index, time.time() - start)
+      #action = self.getMinimaxAction(gameState)
+      #print 'eval time for agent %d: %.4f' % (self.index, time.time() - start)
       # do minimax here?
       # for now, go defense mode if close enough
       for index, pos in opponentPositions:
