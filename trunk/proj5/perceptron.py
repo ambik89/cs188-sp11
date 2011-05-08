@@ -49,7 +49,22 @@ class PerceptronClassifier:
       print "Starting iteration ", iteration, "..."
       for i in range(len(trainingData)):
           "*** YOUR CODE HERE ***"
-          util.raiseNotDefined()
+          bestScore = 0
+          bestLabel = None
+          for label in self.legalLabels:
+              labelWeights = self.weights[label]
+              score = 0.0;
+              for feat in self.features:
+                  score += labelWeights[feat] * trainingData[i][feat]
+              if score >= bestScore:
+                  bestScore = score
+                  bestLabel = label
+          
+          if bestLabel != trainingLabels[i]:
+              self.weights[label] = self.weights[label] + trainingData[i]
+              self.weights[bestLabel] = self.weights[bestLabel] - trainingData[i]
+              
+        
     
   def classify(self, data ):
     """
