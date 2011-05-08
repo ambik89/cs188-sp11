@@ -87,8 +87,8 @@ class MiraClassifier:
         if score > bestScore:
             bestScore = score
             bestWeights = self.weights
-            
-    self.weights = bestWeights
+    if bestWeights != None:        
+        self.weights = bestWeights
               
               
 
