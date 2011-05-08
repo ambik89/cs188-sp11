@@ -24,7 +24,7 @@ class NaiveBayesClassifier(classificationMethod.ClassificationMethod):
     self.automaticTuning = False # Look at this flag to decide whether to choose k automatically ** use this in your train method **
    
     self.priorProb = util.Counter()
-    self.condProb = [util.Counter() for i in self.legalLabels]
+    self.condProb = []
     
   def setSmoothing(self, k):
     """
@@ -77,8 +77,10 @@ class NaiveBayesClassifier(classificationMethod.ClassificationMethod):
                 c[trainingLabels[i]][feature] += 1
         
     
-    condProbList = []
     
+    
+    bestScore = 0
+    bestCondProb = None
     for k in kgrid:
         lst = []
         for label in self.legalLabels:
@@ -86,16 +88,20 @@ class NaiveBayesClassifier(classificationMethod.ClassificationMethod):
             for feature in self.features:
                 ctr[feature] = (c[label][feature] + k) / (self.priorProb[label] + k)
             lst.append(ctr)
-        condProbList.append(lst)
+        self.condProb = lst
         
+        guesses = self.classify(validationData)
+        score = 0
+        for i in range(len(guesses)):
+            if guesses[i] == validationLabels[i]:
+                score += 1
+        
+        if score > bestScore:
+            bestSCore = score
+            bestCondProb = self.condProb
     
+    self.condProb = bestCondProb
     
-   # print trainingData
-    #print trainingLabels
-    
-    
-    
-    util.raiseNotDefined()
         
   def classify(self, testData):
     """
@@ -123,7 +129,13 @@ class NaiveBayesClassifier(classificationMethod.ClassificationMethod):
     logJoint = util.Counter()
     
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    
+    for label in self.legalLabels:
+        sum = math.log(self.priorProb[label])
+        for feature in self.features:
+            if self.condProb[label][feature] != 0:
+                sum += math.log(self.condProb[label][feature])
+        logJoint[label] = sum
     
     return logJoint
   
