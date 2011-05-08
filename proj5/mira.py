@@ -72,7 +72,7 @@ class MiraClassifier:
               bestLabel = scores.argMax()
               if bestLabel != trainingLabels[i]:
                   
-                  t = (self.weights[bestLabel] - self.weights[trainingLabels[i]]) * trainingData[i] + 1
+                  t = (self.weights[bestLabel] - self.weights[trainingLabels[i]]) * trainingData[i] + 1.0
                   t = t / ((trainingData[i] * trainingData[i]) * 2)
                   t = min(c, t)
                   for feat in self.features:
@@ -80,10 +80,10 @@ class MiraClassifier:
                       self.weights[bestLabel][feat] -= t * trainingData[i][feat]
                       
         guesses = self.classify(validationData)
-        scores = 0
+        score = 0
         for i in range(len(guesses)):
             if guesses[i] == validationLabels[i]:              
-                scores += 1
+                score += 1
                 
         if score > bestScore:
             bestScore = score
