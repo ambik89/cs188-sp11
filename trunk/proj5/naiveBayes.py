@@ -155,8 +155,17 @@ class NaiveBayesClassifier(classificationMethod.ClassificationMethod):
     featuresOdds = []
        
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
-
+    
+    ctr = util.Counter()
+    
+    for feat in self.features:
+        ratio = (1.0* self.condProb[label1][feat]) / (1.0 * self.condProb[label2][feat])
+        ctr[feat] = ratio
+        
+    featuresOdds = ctr.sortedKeys()
+    featuresOdds = featuresOdds[0:100]
+    print len(featuresOdds)
+    
     return featuresOdds
     
 
